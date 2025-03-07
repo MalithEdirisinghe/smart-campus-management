@@ -1,0 +1,187 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;500;600;700;800&display=swap');
+
+/* Main container styling */
+.signup-container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Left panel styling */
+.signup-left-panel {
+  width: 40%;
+  background: linear-gradient(to bottom, #333333, #000000);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  padding: 2rem;
+}
+
+.logo-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.campus-logo {
+  width: 280px;
+  height: 280px;
+  margin-bottom: 1.5rem;
+}
+
+.system-title {
+  font-family: 'Abhaya Libre', serif;
+  font-size: 2.5rem;
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 0;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* Right panel styling */
+.signup-right-panel {
+  width: 60%;
+  background-color: #e6e6e6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.signup-form-container {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  width: 80%;
+  max-width: 550px;
+  padding: 3rem;
+  height: 83%;
+}
+
+.signup-heading {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Form styling */
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1.2rem;
+}
+
+.form-group {
+  flex: 1;
+  position: relative;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.form-input:focus {
+  border-color: #666;
+}
+
+.input-error {
+  border-color: #dc3545;
+}
+
+.error-message {
+  position: absolute;
+  left: 0;
+  bottom: -20px;
+  color: #dc3545;
+  font-size: 0.8rem;
+}
+
+.signup-button {
+  width: 100%;
+  padding: 0.8rem;
+  background-color: #666;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 0.5rem;
+}
+
+.signup-button:hover {
+  background-color: #555;
+}
+
+.login-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.login-link a {
+  color: #666;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive design */
+@media (max-width: 992px) {
+  .form-row {
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .signup-container {
+    flex-direction: column;
+  }
+  
+  .signup-left-panel,
+  .signup-right-panel {
+    width: 100%;
+  }
+  
+  .signup-left-panel {
+    height: 30vh;
+    min-height: 200px;
+  }
+  
+  .campus-logo {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .system-title {
+    font-size: 1.8rem;
+  }
+  
+  .signup-form-container {
+    width: 90%;
+    padding: 2rem;
+  }
+}
