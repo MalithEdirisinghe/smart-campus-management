@@ -522,7 +522,7 @@ const StudentProfile = () => {
                   name="firstName"
                   value={profileData.firstName}
                   onChange={handleInputChange}
-                  className="form-control"
+                  className="form-control-student"
                 />
               </div>
             </div>
@@ -536,7 +536,7 @@ const StudentProfile = () => {
                   name="lastName"
                   value={profileData.lastName}
                   onChange={handleInputChange}
-                  className="form-control"
+                  className="form-control-student"
                 />
               </div>
             </div>
@@ -544,18 +544,19 @@ const StudentProfile = () => {
             <div className="form-row split">
               <div className="form-group">
                 <label htmlFor="dateOfBirth">Date of birth:</label>
-                <div className="date-input-container">
+                <div className="date-input-container-student">
                   <input
                     type="text"
                     id="dateOfBirth"
                     name="dateOfBirth"
                     value={formatDate(profileData.dateOfBirth)}
                     readOnly
-                    className="form-control"
+                    className="form-control-student"
                   />
+                </div>
                   <button
                     type="button"
-                    className="calendar-button"
+                    className="calendar-button-student"
                     onClick={toggleCalendar}
                   >
                     <CalendarTodayIcon fontSize="large" />
@@ -577,7 +578,6 @@ const StudentProfile = () => {
                       />
                     </div>
                   )}
-                </div>
               </div>
 
               <div className="form-group">
@@ -587,7 +587,7 @@ const StudentProfile = () => {
                   name="gender"
                   value={profileData.gender}
                   onChange={handleInputChange}
-                  className="form-control"
+                  className="form-control-student-gender"
                 >
                   <option value="">Select Gender</option>
                   <option value="Male">Male</option>
@@ -607,7 +607,7 @@ const StudentProfile = () => {
                   name="address"
                   value={profileData.address}
                   onChange={handleInputChange}
-                  className="form-control"
+                  className="form-control-student"
                 />
               </div>
             </div>
@@ -621,7 +621,7 @@ const StudentProfile = () => {
                   name="email"
                   value={profileData.email}
                   onChange={handleInputChange}
-                  className="form-control"
+                  className="form-control-student"
                   readOnly
                 />
               </div>
@@ -636,7 +636,7 @@ const StudentProfile = () => {
                   name="contactNumber"
                   value={profileData.contactNumber}
                   onChange={handleInputChange}
-                  className="form-control"
+                  className="form-control-student"
                 />
               </div>
             </div>

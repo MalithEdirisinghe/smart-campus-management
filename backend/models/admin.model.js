@@ -1,4 +1,3 @@
-// models/admin.model.js
 const db = require('./db');
 
 const Admin = {
@@ -12,22 +11,34 @@ const Admin = {
     }
   },
   
-  findByAdminId: async (adminId) => {
-    const query = 'SELECT * FROM admin_users WHERE admin_id = ?';
-    try {
-      const results = await db.query(query, [adminId]);
-      return results.length ? results[0] : null;
-    } catch (error) {
-      throw error;
+  update: async (adminId, adminData) => {
+    // Create query parts dynamically based on provided data
+    const updateFields = [];
+    const queryParams = [];
+    
+    // Add fields that are present in adminData
+    if (adminData.department !== undefined) {
+      updateFields.push('department = ?');
+      queryParams.push(adminData.department);
     }
-  },
-  
-  findByUserIdAndAdminId: async (userId, adminId) => {
-    const query = 'SELECT * FROM admin_users WHERE user_id = ? AND admin_id = ?';
+    
+    // Add other admin fields as needed
+    
+    // Make sure we have fields to update
+    if (updateFields.length === 0) {
+      return false; // Nothing to update
+    }
+    
+    // Add adminId as the last parameter
+    queryParams.push(adminId);
+    
+    const query = `UPDATE admin_users SET ${updateFields.join(', ')} WHERE admin_id = ?`;
+    
     try {
-      const results = await db.query(query, [userId, adminId]);
-      return results.length ? results[0] : null;
+      const result = await db.query(query, queryParams);
+      return result.affectedRows > 0;
     } catch (error) {
+      console.error("Error updating admin:", error);
       throw error;
     }
   }

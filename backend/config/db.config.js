@@ -5,7 +5,7 @@ module.exports = {
     DB: process.env.DB_NAME || "campus_management",
     pool: {
       max: 10,         // Maximum number of connections in the pool
-      min: 0,          // Minimum number of connections in the pool
+      min: 1,          // Minimum number of connections in the pool
       acquire: 30000,  // Maximum time in milliseconds to acquire a connection
       idle: 10000      // Maximum time in milliseconds that a connection can be idle
     }

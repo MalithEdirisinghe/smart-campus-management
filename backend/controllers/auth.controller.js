@@ -206,7 +206,7 @@ exports.getCurrentUser = async (req, res) => {
   }
 };
 
-// Admin sign in
+// Admin and lecturer sign in
 exports.adminSignin = async (req, res) => {
   try {
     const { email, adminId, password } = req.body;
@@ -220,23 +220,43 @@ exports.adminSignin = async (req, res) => {
       });
     }
     
-    // Verify role is admin
-    if (user.role !== 'admin') {
+    // Verify role is admin or lecturer
+    if (user.role !== 'admin' && user.role !== 'lecturer') {
       return res.status(403).json({
-        message: "Access denied. Administrator privileges required."
+        message: "Access denied. Administrator or Lecturer privileges required."
       });
     }
     
-    // Verify admin ID matches using direct database query
-    const adminResults = await db.query(
-      'SELECT * FROM admin_users WHERE user_id = ? AND admin_id = ?',
-      [user.user_id, adminId]
-    );
-    
-    if (!adminResults || adminResults.length === 0) {
-      return res.status(401).json({
-        message: "Invalid Admin ID"
-      });
+    // Verify ID matches based on role
+    let roleSpecificData;
+    if (user.role === 'admin') {
+      // Check admin ID
+      const adminResults = await db.query(
+        'SELECT * FROM admin_users WHERE user_id = ? AND admin_id = ?',
+        [user.user_id, adminId]
+      );
+      
+      if (!adminResults || adminResults.length === 0) {
+        return res.status(401).json({
+          message: "Invalid Admin ID"
+        });
+      }
+      
+      roleSpecificData = adminResults[0];
+    } else {
+      // Check lecturer ID
+      const lecturerResults = await db.query(
+        'SELECT * FROM lecturer_users WHERE user_id = ? AND lecturer_id = ?',
+        [user.user_id, adminId]
+      );
+      
+      if (!lecturerResults || lecturerResults.length === 0) {
+        return res.status(401).json({
+          message: "Invalid Lecturer ID"
+        });
+      }
+      
+      roleSpecificData = lecturerResults[0];
     }
     
     // Validate password
@@ -258,22 +278,29 @@ exports.adminSignin = async (req, res) => {
     // Update last login time
     await User.updateLastLogin(user.user_id);
     
-    // Return admin information
-    const admin = adminResults[0];
-    
-    res.status(200).json({
+    // Return common and role-specific information
+    const responseData = {
       id: user.user_id,
       email: user.email,
       firstName: user.first_name,
       lastName: user.last_name,
       role: user.role,
-      adminId: admin.admin_id,
-      department: admin.department,
-      accessLevel: admin.access_level,
+      department: roleSpecificData.department,
       accessToken: token
-    });
+    };
+    
+    // Add role-specific fields
+    if (user.role === 'admin') {
+      responseData.adminId = roleSpecificData.admin_id;
+      responseData.accessLevel = roleSpecificData.access_level;
+    } else {
+      responseData.lecturerId = roleSpecificData.lecturer_id;
+      responseData.specialization = roleSpecificData.specialization;
+    }
+    
+    res.status(200).json(responseData);
   } catch (error) {
-    console.error('Admin login error:', error);
+    console.error('Login error:', error);
     res.status(500).json({
       message: "Failed to sign in",
       error: error.message

@@ -24,45 +24,129 @@ const AdminDashboard = () => {
   });
 
   useEffect(() => {
-    // Simulate fetching admin data
     const fetchAdminData = async () => {
       try {
         setIsLoading(true);
-        
-        // In a real app, this would be an API call
-        // For now, we'll simulate loading data
-        setTimeout(() => {
-          setAdmin({
-            firstName: 'Ranuga',
-            lastName: 'Wijethunga',
-            adminId: 'A001',
-            role: 'Admin',
-            department: 'Computing',
-            profileImage: null
-          });
-          
-          // Mock event data
-          setOngoingEvents([
-            {
+
+        // Get auth token from localStorage
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+          throw new Error('Authentication token not found');
+        }
+
+        // Try to get cached user data first
+        const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
+
+        // Fetch admin profile data
+        const response = await fetch('http://localhost:8080/api/admin/profile', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'x-access-token': token
+          }
+        });
+
+        if (!response.ok) {
+          // If API request fails but we have cached data, use that temporarily
+          if (cachedUser && cachedUser.role === 'admin') {
+            setAdmin({
+              firstName: cachedUser.firstName || '',
+              lastName: cachedUser.lastName || '',
+              adminId: cachedUser.adminId || '',
+              role: 'Admin',
+              department: cachedUser.department || 'Computing',
+              profileImage: null
+            });
+
+            setIsLoading(false);
+
+            // Continue with fallback event data
+            setOngoingEvents([{
               name: 'Hackathon 2025',
               date: '03/03/2025',
               time: '9.00 A.M',
               location: 'Colombo',
               venue: 'Campus premises',
               description: 'The Hackathon bringing together innovative minds to solve real-world campus challenges. Get ready for a competitive yet fun experience where innovation meets practicality!'
-            }
-          ]);
-          
-          setIsLoading(false);
-        }, 1000);
+            }]);
+            return;
+          }
+
+          // Handle HTTP errors if no cached data
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || `Error: ${response.status}`);
+        }
+
+        // const adminData = await response.json();
+        // console.log("Received admin profile data:", adminData);
+
+        // // Set admin profile data
+        // setAdmin({
+        //   firstName: adminData.firstName || '',
+        //   lastName: adminData.lastName || '',
+        //   adminId: adminData.adminId || '',
+        //   role: adminData.role || 'Admin',
+        //   department: adminData.department || '',
+        //   profileImage: adminData.profileImage || null
+        // });
+        // Update in fetchAdminData to log and ensure proper BLOB handling
+        const adminData = await response.json();
+        console.log("Received admin profile data:", {
+          ...adminData,
+          profileImage: adminData.profileImage ?
+            `${adminData.profileImage.substring(0, 30)}...` : 'No image'
+        });
+
+        // Set admin profile data
+        setAdmin({
+          firstName: adminData.firstName || '',
+          lastName: adminData.lastName || '',
+          adminId: adminData.adminId || '',
+          role: adminData.role || 'Admin',
+          department: adminData.department || '',
+          profileImage: adminData.profileImage || null
+        });
+
+        // Fetch ongoing events (in a real app, this would be a separate API call)
+        const eventsResponse = await fetch('http://localhost:8080/api/events/ongoing', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'x-access-token': token
+          }
+        });
+
+        if (eventsResponse.ok) {
+          const eventsData = await eventsResponse.json();
+          setOngoingEvents(eventsData);
+        } else {
+          // Fallback to default event if API fails
+          setOngoingEvents([{
+            name: 'Hackathon 2025',
+            date: '03/03/2025',
+            time: '9.00 A.M',
+            location: 'Colombo',
+            venue: 'Campus premises',
+            description: 'The Hackathon bringing together innovative minds to solve real-world campus challenges. Get ready for a competitive yet fun experience where innovation meets practicality!'
+          }]);
+        }
+
+        setIsLoading(false);
       } catch (error) {
         console.error('Error fetching admin data:', error);
         setIsLoading(false);
+
+        // If unauthorized, redirect to login
+        if (error.message.includes('401') || error.message.includes('Authentication')) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/admin/login');
+        }
       }
     };
-    
+
     fetchAdminData();
-  }, []);
+  }, [navigate]);
 
   const handleNavigate = (path) => {
     navigate(path);
@@ -70,13 +154,13 @@ const AdminDashboard = () => {
 
   const formatDate = (date) => {
     if (!date) return '';
-    
+
     // Make sure we have a valid Date object
     const d = new Date(date);
     if (isNaN(d.getTime())) {
       return '';
     }
-    
+
     // Format as MM/DD/YYYY
     return `${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}/${d.getFullYear()}`;
   };
@@ -101,6 +185,11 @@ const AdminDashboard = () => {
                 src={admin.profileImage}
                 alt="Profile"
                 className="profile-image"
+                onError={(e) => {
+                  console.error("Error loading profile image");
+                  e.target.onerror = null;
+                  e.target.src = defaultProfileImage;
+                }}
               />
             ) : (
               <img
@@ -139,7 +228,11 @@ const AdminDashboard = () => {
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
               </svg>
             </div>
-            <div className="profile-icon">
+            <div
+              className="profile-icon"
+              onClick={() => handleNavigate('/admin/profile')}
+              style={{ cursor: 'pointer' }}
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
@@ -174,7 +267,7 @@ const AdminDashboard = () => {
                 </button>
               </div>
             </div>
-            
+
             {ongoingEvents.length > 0 ? (
               <div className="events-container">
                 {ongoingEvents.map((event, index) => (
@@ -209,7 +302,7 @@ const AdminDashboard = () => {
                   <MoreVertIcon />
                 </button>
               </div>
-              
+
               <div className="resource-card">
                 <div className="resource-info">
                   <h3>Computers</h3>
@@ -219,7 +312,7 @@ const AdminDashboard = () => {
                   <MoreVertIcon />
                 </button>
               </div>
-              
+
               <div className="resource-card">
                 <div className="resource-info">
                   <h3>Tablets</h3>
@@ -229,7 +322,7 @@ const AdminDashboard = () => {
                   <MoreVertIcon />
                 </button>
               </div>
-              
+
               <div className="resource-card">
                 <div className="resource-info">
                   <h3>Projectors</h3>
@@ -245,7 +338,7 @@ const AdminDashboard = () => {
           {/* Attendance Section */}
           <section className="dashboard-section">
             <h2 className="section-title">Attendance</h2>
-            
+
             <div className="attendance-filters">
               <div className="date-filter">
                 <label>Date</label>
@@ -261,10 +354,10 @@ const AdminDashboard = () => {
                   </button>
                 </div>
               </div>
-              
+
               <div className="module-filter">
                 <label>Select Module:</label>
-                <select 
+                <select
                   value={selectedModule}
                   onChange={(e) => setSelectedModule(e.target.value)}
                   className="module-select"
@@ -276,7 +369,7 @@ const AdminDashboard = () => {
                 </select>
               </div>
             </div>
-            
+
             <div className="attendance-summary">
               <div className="attendance-card">
                 <h3>Students</h3>

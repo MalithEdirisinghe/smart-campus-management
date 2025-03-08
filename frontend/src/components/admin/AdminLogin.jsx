@@ -89,7 +89,7 @@ const AdminLogin = () => {
         if (data.role === 'admin') {
           navigate('/admin/dashboard');
         } else if (data.role === 'lecturer') {
-          navigate('/lecturer/dashboard');
+          navigate('/lecturer/classes');
         }
       } catch (error) {
         setErrors({

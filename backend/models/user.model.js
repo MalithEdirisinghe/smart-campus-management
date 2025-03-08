@@ -42,20 +42,25 @@ const User = {
       FROM users WHERE user_id = ?
     `;
     
+    // Ensure this specifically returns the raw buffer data for profile_image
+    console.log("Executing findById query for user:", userId);
+    
     try {
       const results = await db.query(query, [userId]);
+      console.log("Query results obtained");
+      
       if (!results.length) return null;
       
-      const userData = formatUserData(results[0]);
-      
-      // Convert BLOB to base64 string if present
-      if (userData.profileImage && Buffer.isBuffer(userData.profileImage)) {
-        const imageType = userData.profileImageType || 'image/jpeg';
-        userData.profileImage = `data:${imageType};base64,${userData.profileImage.toString('base64')}`;
+      // Log profile image details
+      if (results[0].profile_image) {
+        console.log("Raw profile image from DB:", 
+                    typeof results[0].profile_image,
+                    "Length:", results[0].profile_image.length);
       }
       
-      return userData;
+      return results[0];
     } catch (error) {
+      console.error("Error in findById:", error);
       throw error;
     }
   },
@@ -183,13 +188,17 @@ const User = {
 
 // Helper function to convert snake_case to camelCase for user data
 const formatUserData = (user) => {
+  // Log the incoming user object to verify fields
+  console.log("Formatting user data with these fields:", Object.keys(user));
+  console.log("Profile image exists in raw data:", !!user.profile_image);
+  
   return {
     userId: user.user_id,
     email: user.email,
     role: user.role,
     firstName: user.first_name,
     lastName: user.last_name,
-    profileImage: user.profile_image,
+    profileImage: user.profile_image, // This is the critical line
     profileImageType: user.profile_image_type,
     dateOfBirth: user.date_of_birth,
     gender: user.gender,

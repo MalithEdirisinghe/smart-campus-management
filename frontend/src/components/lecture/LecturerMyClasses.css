@@ -1,4 +1,5 @@
-.admin-dashboard-container {
+/* LecturerMyClasses.css */
+.lecturer-classes-container {
     display: flex;
     width: 100%;
     height: 100vh;
@@ -125,143 +126,110 @@
     transform: scale(1.05);
   }
   
-  .dashboard-content {
+  /* Class management content styling */
+  .class-management-content {
     flex-grow: 1;
     padding: 20px 30px;
     overflow-y: auto;
   }
   
-  /* Dashboard sections styling */
-  .dashboard-section {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 25px;
-    padding: 20px;
-  }
-  
   .section-title {
-    font-size: 24px;
-    color: #333;
-    margin-top: 0;
-    margin-bottom: 15px;
+    font-size: 28px;
     font-weight: 500;
+    color: #333;
+    margin-bottom: 20px;
   }
   
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-  
-  .sort-container {
+  /* Module selection */
+  .module-selection {
     display: flex;
     align-items: center;
-    gap: 10px;
+    margin-bottom: 20px;
   }
   
-  .sort-select {
-    padding: 8px 15px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    min-width: 150px;
-  }
-  
-  .navigation-buttons {
-    display: flex;
-    gap: 5px;
-  }
-  
-  .nav-button {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #e0e0e0;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  
-  .nav-button:hover {
-    background-color: #ccc;
-  }
-  
-  /* Events styling */
-  .events-container {
-    background-color: #f9f9f9;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 15px;
-  }
-  
-  .event-card {
-    padding: 15px;
-    border-radius: 4px;
-  }
-  
-  .event-details p {
-    margin: 5px 0;
-    line-height: 1.4;
-  }
-  
-  .event-description {
-    margin-top: 8px;
-    line-height: 1.5;
-    color: #555;
-  }
-  
-  .no-events {
-    padding: 20px;
-    text-align: center;
-    color: #666;
-    font-style: italic;
-  }
-  
-  /* Resource usage styling */
-  .resource-cards {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-  }
-  
-  .resource-card {
-    background-color: #f9f9f9;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    min-width: 200px;
-    flex: 1;
-  }
-  
-  .resource-info h3 {
-    margin: 0 0 5px 0;
+  .module-selection label {
+    margin-right: 10px;
     font-size: 16px;
   }
   
-  .resource-info p {
-    margin: 0;
-    color: #555;
-  }
-  
-  .resource-options-btn {
-    background: none;
-    border: none;
+  .module-select, .batch-select {
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    min-width: 200px;
+    appearance: none;
+    background-color: white;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #666;
   }
   
-  /* Attendance styling */
+  /* Action buttons */
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .action-button {
+    padding: 10px 30px;
+    border-radius: 25px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .action-button:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .action-button.active {
+    background-color: #666;
+    color: white;
+    border-color: #666;
+  }
+  
+  /* Class table styling */
+  .class-table-container, .attendance-table-container {
+    margin-bottom: 30px;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .class-table, .attendance-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .class-table th, .class-table td, 
+  .attendance-table th, .attendance-table td {
+    padding: 15px;
+    text-align: left;
+    border: 1px solid #e0e0e0;
+  }
+  
+  .class-table th, .attendance-table th {
+    background-color: #f5f5f5;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .class-table tr:hover, .attendance-table tr:hover {
+    background-color: #f9f9f9;
+  }
+  
+  /* Attendance section specific styles */
+  .class-attendance-section {
+    margin-top: 40px;
+  }
+  
   .attendance-filters {
     display: flex;
     flex-wrap: wrap;
@@ -269,68 +237,28 @@
     margin-bottom: 20px;
   }
   
-  .date-filter, .module-filter {
+  .filter-group {
     display: flex;
     flex-direction: column;
     gap: 5px;
   }
   
-  .date-input-container {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  
-  .date-input {
-    padding: 8px 15px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    width: 150px;
-  }
-  
-  .calendar-button {
-    position: absolute;
-    right: 10px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #666;
-  }
-  
-  .module-select {
-    padding: 8px 15px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    min-width: 200px;
-  }
-  
-  .attendance-summary {
-    margin-top: 15px;
-  }
-  
-  .attendance-card {
-    background-color: #f9f9f9;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 15px;
-    text-align: center;
-    max-width: 250px;
-  }
-  
-  .attendance-card h3 {
-    margin: 0 0 5px 0;
+  .filter-group label {
     font-size: 16px;
   }
   
-  .attendance-card p {
-    margin: 0;
-    color: #555;
-    font-weight: 500;
+  /* Date picker styling */
+  .date-picker-wrapper {
+    position: relative;
+  }
+  
+  .date-input {
+    padding: 10px 15px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    min-width: 150px;
+    cursor: pointer;
   }
   
   /* Loading state */
@@ -358,8 +286,9 @@
     100% { transform: rotate(360deg); }
   }
   
+  /* Responsive adjustments */
   @media (max-width: 992px) {
-    .admin-dashboard-container {
+    .lecturer-classes-container {
       flex-direction: column;
       height: auto;
     }
@@ -373,10 +302,6 @@
       order: 1;
     }
     
-    .resource-cards {
-      flex-direction: column;
-    }
-  
     .attendance-filters {
       flex-direction: column;
     }

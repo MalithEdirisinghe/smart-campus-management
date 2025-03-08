@@ -194,10 +194,6 @@
   
   .form-row {
     margin-bottom: 20px;
-  }
-  
-  .form-row {
-    margin-bottom: 20px;
     text-align: left;
   }
   
@@ -208,22 +204,32 @@
   .form-group {
     display: flex;
     flex-direction: column;
+    text-align: center;
   }
   
   .form-group label {
-    display: block;
     text-align: left;
-    margin-bottom: 8px;
+    display: block;
+    width: 100%;
+    margin-bottom: 6px;
     font-weight: 500;
-    color: #333;
   }
   
-  .form-control {
+  .form-control-student {
     padding: 12px 15px;
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 16px;
     transition: border-color 0.2s;
+  }
+
+  .form-control-student-gender {
+    padding: 12px 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border-color 0.2s;
+    width: 100%;
   }
   
   .form-control:focus {
@@ -231,8 +237,10 @@
     outline: none;
   }
   
-  .date-input-container {
+  .date-input-container-student {
     position: relative;
+    width: 60%;
+    right: 80px;
   }
   
   .calendar-icon {
@@ -300,10 +308,6 @@
       gap: 20px;
     }
   }
-
-  .date-input-container {
-    position: relative;
-  }
   
   .date-picker-container {
     position: absolute;
@@ -315,10 +319,10 @@
     border-radius: 4px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
-  .calendar-button {
+  .calendar-button-student {
     position: absolute;
-    right: 110px;
-    top: 50%;
+    right: 100px;
+    top: 70%;
     transform: translateY(-50%);
     background: none;
     border: none;

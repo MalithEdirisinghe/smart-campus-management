@@ -33,6 +33,7 @@ db.testConnection().then(connected => {
 // Routes
 require('./routes/auth.routes')(app);
 require('./routes/student.routes')(app);
+require('./routes/admin.routes')(app);
 
 // Root route
 app.get("/", (req, res) => {
