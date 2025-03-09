@@ -512,3 +512,38 @@
   .btn-submit:hover {
     background-color: #555;
   }
+  .selected-row {
+    background-color: #f0f7ff;
+}
+
+.actions-cell {
+  text-align: center;
+  width: 100px;
+  white-space: nowrap;
+}
+
+.action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  margin: 0 3px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.edit-btn {
+  color: #1890ff;
+}
+
+.edit-btn:hover {
+  background-color: rgba(24, 144, 255, 0.1);
+}
+
+.delete-btn {
+  color: #ff4d4f;
+}
+
+.delete-btn:hover {
+  background-color: rgba(255, 77, 79, 0.1);
+}
