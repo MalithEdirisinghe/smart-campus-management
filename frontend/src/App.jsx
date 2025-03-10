@@ -5,7 +5,11 @@ import StudentSignup from './components/student/StudentSignup';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
 import AdminProfile from './components/admin/AdminProfile';
+import AdminEvent from './components/admin/AdminEvent';
 import AdminUsers from './components/admin/AdminUsers';
+import AdminCom from './components/admin/AdminCom';
+import AdminReport from './components/admin/AdminReport';
+import AdminResources from './components/admin/AdminResources';
 import StudentProfile from './components/student/StudentProfile';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LecturerMyClasses from './components/lecture/LecturerMyClasses';
@@ -67,7 +71,39 @@ function App() {
               </ProtectedRoute>
             }
           />
-{/* Protected Lecture routes */}
+          <Route
+            path="/admin/event"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminEvent />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/resources"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminResources />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/com"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminCom />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/reports"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminReport />
+              </ProtectedRoute>
+            }
+          />
+          {/* Protected Lecture routes */}
           <Route
             path="/lecturer/classes"
             element={
@@ -77,10 +113,10 @@ function App() {
             }
           />
           <Route path="/admin/users" element={<Navigate to="/admin/dashboard" />} />
-          <Route path="/admin/events" element={<Navigate to="/admin/dashboard" />} />
-          <Route path="/admin/resources" element={<Navigate to="/admin/dashboard" />} />
-          <Route path="/admin/communication" element={<Navigate to="/admin/dashboard" />} />
-          <Route path="/admin/reports" element={<Navigate to="/admin/dashboard" />} />
+          <Route path="/admin/events" element={<Navigate to="/admin/event" />} />
+          <Route path="/admin/resources" element={<Navigate to="/admin/resources" />} />
+          <Route path="/admin/communication" element={<Navigate to="/admin/com" />} />
+          <Route path="/admin/reports" element={<Navigate to="/admin/reports" />} />
 
           {/* Fallback for unknown routes - redirect to login */}
           <Route path="*" element={<Navigate to="/login" />} />

@@ -179,7 +179,7 @@ const AdminLogin = () => {
                 <p>Default admin credentials:</p>
                 <p>Email: admin@imperial.edu</p>
                 <p>Admin ID: ADMIN001</p>
-                <p>Password: admin123</p>
+                <p>Password: admin@123</p>
               </div>
             </form>
           </div>

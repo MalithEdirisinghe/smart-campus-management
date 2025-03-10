@@ -12,6 +12,7 @@ const AdminDashboard = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedModule, setSelectedModule] = useState('Networking');
   const [ongoingEvents, setOngoingEvents] = useState([]);
+  const [sortOption, setSortOption] = useState('Latest');
   const [resourceUsage, setResourceUsage] = useState({
     classrooms: { available: 16, total: 35 },
     computers: { available: 32, total: 68 },
@@ -22,6 +23,97 @@ const AdminDashboard = () => {
     attended: 16,
     total: 35
   });
+
+  // Function to fetch events from the database
+  const fetchEvents = async (token) => {
+    try {
+      // Use the events API endpoint
+      const response = await fetch('http://localhost:8080/api/events', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'x-access-token': token
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch events: ${response.status}`);
+      }
+
+      const eventsData = await response.json();
+      return eventsData;
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      // Return fallback event as a last resort
+      return [{
+        id: 1,
+        name: 'Hackathon 2025',
+        date: '03/09/2025',
+        time: '9.00 A.M',
+        location: 'Colombo',
+        venue: 'Campus premises',
+        description: 'The Hackathon bringing together innovative minds to solve real-world campus challenges. Get ready for a competitive yet fun experience where innovation meets practicality!'
+      }];
+    }
+  };
+
+  // Function to sort events based on selected option
+  const sortEvents = (events, option) => {
+    if (!events || events.length === 0) return [];
+
+    const sortedEvents = [...events];
+    
+    switch (option) {
+      case 'Latest':
+        // Sort by date and time, newest first
+        sortedEvents.sort((a, b) => {
+          const dateA = new Date(`${a.date} ${a.time}`);
+          const dateB = new Date(`${b.date} ${b.time}`);
+          // Handle invalid dates gracefully
+          if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+          if (isNaN(dateA.getTime())) return 1;
+          if (isNaN(dateB.getTime())) return -1;
+          return dateB - dateA;
+        });
+        break;
+      case 'Oldest':
+        // Sort by date and time, oldest first
+        sortedEvents.sort((a, b) => {
+          const dateA = new Date(`${a.date} ${a.time}`);
+          const dateB = new Date(`${b.date} ${b.time}`);
+          // Handle invalid dates gracefully
+          if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+          if (isNaN(dateA.getTime())) return 1;
+          if (isNaN(dateB.getTime())) return -1;
+          return dateA - dateB;
+        });
+        break;
+      case 'Alphabetical':
+        // Sort alphabetically by name
+        sortedEvents.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        break;
+      default:
+        // Default to 'Latest' sorting
+        sortedEvents.sort((a, b) => {
+          const dateA = new Date(`${a.date} ${a.time}`);
+          const dateB = new Date(`${b.date} ${b.time}`);
+          if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) return 0;
+          return dateB - dateA;
+        });
+    }
+    
+    return sortedEvents;
+  };
+
+  // Handle sort option change
+  const handleSortChange = (e) => {
+    const newSortOption = e.target.value;
+    setSortOption(newSortOption);
+    
+    // Apply the new sorting to existing events
+    const sortedEvents = sortEvents(ongoingEvents, newSortOption);
+    setOngoingEvents(sortedEvents);
+  };
 
   useEffect(() => {
     const fetchAdminData = async () => {
@@ -59,17 +151,12 @@ const AdminDashboard = () => {
               profileImage: null
             });
 
-            setIsLoading(false);
+            // Fetch events even when using cached admin data
+            const eventsData = await fetchEvents(token);
+            const sortedEvents = sortEvents(eventsData, sortOption);
+            setOngoingEvents(sortedEvents);
 
-            // Continue with fallback event data
-            setOngoingEvents([{
-              name: 'Hackathon 2025',
-              date: '03/03/2025',
-              time: '9.00 A.M',
-              location: 'Colombo',
-              venue: 'Campus premises',
-              description: 'The Hackathon bringing together innovative minds to solve real-world campus challenges. Get ready for a competitive yet fun experience where innovation meets practicality!'
-            }]);
+            setIsLoading(false);
             return;
           }
 
@@ -78,19 +165,6 @@ const AdminDashboard = () => {
           throw new Error(errorData.message || `Error: ${response.status}`);
         }
 
-        // const adminData = await response.json();
-        // console.log("Received admin profile data:", adminData);
-
-        // // Set admin profile data
-        // setAdmin({
-        //   firstName: adminData.firstName || '',
-        //   lastName: adminData.lastName || '',
-        //   adminId: adminData.adminId || '',
-        //   role: adminData.role || 'Admin',
-        //   department: adminData.department || '',
-        //   profileImage: adminData.profileImage || null
-        // });
-        // Update in fetchAdminData to log and ensure proper BLOB handling
         const adminData = await response.json();
         console.log("Received admin profile data:", {
           ...adminData,
@@ -108,28 +182,10 @@ const AdminDashboard = () => {
           profileImage: adminData.profileImage || null
         });
 
-        // Fetch ongoing events (in a real app, this would be a separate API call)
-        const eventsResponse = await fetch('http://localhost:8080/api/events/ongoing', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'x-access-token': token
-          }
-        });
-
-        if (eventsResponse.ok) {
-          const eventsData = await eventsResponse.json();
-          setOngoingEvents(eventsData);
-        } else {
-          // Fallback to default event if API fails
-          setOngoingEvents([{
-            name: 'Hackathon 2025',
-            date: '03/03/2025',
-            time: '9.00 A.M',
-            location: 'Colombo',
-            venue: 'Campus premises',
-            description: 'The Hackathon bringing together innovative minds to solve real-world campus challenges. Get ready for a competitive yet fun experience where innovation meets practicality!'
-          }]);
-        }
+        // Fetch events from database
+        const eventsData = await fetchEvents(token);
+        const sortedEvents = sortEvents(eventsData, sortOption);
+        setOngoingEvents(sortedEvents);
 
         setIsLoading(false);
       } catch (error) {
@@ -146,7 +202,7 @@ const AdminDashboard = () => {
     };
 
     fetchAdminData();
-  }, [navigate]);
+  }, [navigate, sortOption]);
 
   const handleNavigate = (path) => {
     navigate(path);
@@ -248,10 +304,14 @@ const AdminDashboard = () => {
             <div className="section-header">
               <div className="sort-container">
                 <label>Sort by:</label>
-                <select className="sort-select">
-                  <option>Latest</option>
-                  <option>Oldest</option>
-                  <option>Alphabetical</option>
+                <select 
+                  className="sort-select"
+                  value={sortOption}
+                  onChange={handleSortChange}
+                >
+                  <option value="Latest">Latest</option>
+                  <option value="Oldest">Oldest</option>
+                  <option value="Alphabetical">Alphabetical</option>
                 </select>
               </div>
               <div className="navigation-buttons">
@@ -271,7 +331,7 @@ const AdminDashboard = () => {
             {ongoingEvents.length > 0 ? (
               <div className="events-container">
                 {ongoingEvents.map((event, index) => (
-                  <div key={index} className="event-card">
+                  <div key={event.id || index} className="event-card">
                     <div className="event-details">
                       <p><strong>Name:</strong> {event.name}</p>
                       <p><strong>Date:</strong> {event.date}</p>

@@ -154,7 +154,7 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// Add a new user (admin or lecturer)
+// Add a new user 
 exports.createUser = async (req, res) => {
   try {
     const { firstName, lastName, email, password, department, role, contactNumber } = req.body;
@@ -166,10 +166,10 @@ exports.createUser = async (req, res) => {
       });
     }
 
-    // Verify the role is allowed (only admin or lecturer)
-    if (role !== 'admin' && role !== 'lecturer') {
+    // Verify the role is allowed
+    if (role !== 'admin' && role !== 'lecturer' && role !== 'student') {
       return res.status(400).json({
-        message: "Invalid role. Only 'admin' or 'lecturer' are allowed."
+        message: "Invalid role. Only 'admin', 'lecturer', or 'student' are allowed."
       });
     }
 
@@ -241,6 +241,25 @@ exports.createUser = async (req, res) => {
           ]
         );
       }
+      // After generating IDs for admin and lecturer roles, add:
+      else if (role === 'student') {
+        // Generate student ID
+        userTypeId = await generateId('student', department);
+
+        // Create student record
+        await connection.execute(
+          `INSERT INTO students 
+      (student_id, user_id, department, batch, enrollment_date, status) 
+      VALUES (?, ?, ?, ?, NOW(), ?)`,
+          [
+            userTypeId,
+            userId,
+            department,
+            req.body.batch || 'COM12', // Default batch or get from request
+            'active' // Default status
+          ]
+        );
+      }
 
       // Return the created user data
       return {
@@ -275,13 +294,23 @@ exports.createUser = async (req, res) => {
 
 // Helper function to generate IDs
 async function generateId(role, department) {
-  const prefix = role === 'admin' ? 'A' : 'L';
+  // Determine the prefix based on role
+  let prefix;
+  if (role === 'admin') prefix = 'A';
+  else if (role === 'lecturer') prefix = 'L';
+  else if (role === 'student') prefix = 'S';
+
+  // Determine the table and ID field based on role
+  const table = role === 'admin' ? 'admin_users' :
+    role === 'lecturer' ? 'lecturer_users' : 'students';
+  const idField = role === 'admin' ? 'admin_id' :
+    role === 'lecturer' ? 'lecturer_id' : 'student_id';
 
   // Get the latest ID for this role
   const query = `
-    SELECT ${role === 'admin' ? 'admin_id' : 'lecturer_id'} as id
-    FROM ${role === 'admin' ? 'admin_users' : 'lecturer_users'}
-    WHERE ${role === 'admin' ? 'admin_id' : 'lecturer_id'} LIKE ?
+    SELECT ${idField} as id
+    FROM ${table}
+    WHERE ${idField} LIKE ?
     ORDER BY id DESC 
     LIMIT 1
   `;
@@ -419,10 +448,10 @@ exports.updateAdmin = async (req, res) => {
   try {
     const adminId = req.params.id;
     const { firstName, lastName, email, department, contactNumber } = req.body;
-    
+
     console.log("Updating admin with ID:", adminId);
     console.log("Request body:", req.body);
-    
+
     if (!adminId) {
       // If adminId is missing but we have an email, try to find the admin by email
       if (email) {
@@ -433,21 +462,21 @@ exports.updateAdmin = async (req, res) => {
            WHERE u.email = ? AND u.role = 'admin'`,
           [email]
         );
-        
+
         if (adminByEmail.length > 0) {
           const foundAdminId = adminByEmail[0].admin_id;
           console.log(`Found admin ID ${foundAdminId} for email ${email}`);
-          
+
           // Continue update process with the found ID
           return this.updateAdminWithId(foundAdminId, req.body, res);
         }
       }
-      
+
       return res.status(400).json({
         message: "Admin ID is required but was not provided"
       });
     }
-    
+
     // Continue with normal update process
     return this.updateAdminWithId(adminId, req.body, res);
   } catch (error) {
@@ -463,25 +492,25 @@ exports.updateAdmin = async (req, res) => {
 exports.updateAdminWithId = async (adminId, userData, res) => {
   try {
     const { firstName, lastName, department, contactNumber } = userData;
-    
+
     // Check if admin exists before trying transaction
     const adminCheck = await db.query(
       'SELECT * FROM admin_users WHERE admin_id = ?',
       [adminId]
     );
-    
+
     console.log("Admin check result:", adminCheck);
-    
+
     if (!adminCheck.length) {
       return res.status(404).json({
         message: `Admin not found with ID: ${adminId}`
       });
     }
-    
+
     // Start a transaction
     await db.transaction(async (connection) => {
       const userId = adminCheck[0].user_id;
-      
+
       // Update user information
       await connection.execute(
         `UPDATE users 
@@ -489,7 +518,7 @@ exports.updateAdminWithId = async (adminId, userData, res) => {
          WHERE user_id = ?`,
         [firstName, lastName, contactNumber, userId]
       );
-      
+
       // Update admin-specific information
       await connection.execute(
         `UPDATE admin_users 
@@ -498,7 +527,7 @@ exports.updateAdminWithId = async (adminId, userData, res) => {
         [department, adminId]
       );
     });
-    
+
     // Fetch the updated admin user for the response
     const updatedAdmin = await db.query(
       `SELECT au.admin_id, u.user_id, u.first_name as firstName, u.last_name as lastName, 
@@ -508,7 +537,7 @@ exports.updateAdminWithId = async (adminId, userData, res) => {
        WHERE au.admin_id = ?`,
       [adminId]
     );
-    
+
     res.status(200).json({
       message: "Admin updated successfully",
       user: updatedAdmin[0]
@@ -621,8 +650,8 @@ exports.updateStudent = async (req, res) => {
         `UPDATE students 
          SET department = ?${batch ? ', batch = ?' : ''} 
          WHERE student_id = ?`,
-        batch 
-          ? [department, batch, studentId] 
+        batch
+          ? [department, batch, studentId]
           : [department, studentId]
       );
     });
@@ -651,6 +680,147 @@ exports.updateStudent = async (req, res) => {
     console.error("Error updating student:", error);
     res.status(500).json({
       message: "Failed to update student user",
+      error: error.message
+    });
+  }
+};
+
+// Delete admin user
+exports.deleteAdmin = async (req, res) => {
+  try {
+    const adminId = req.params.id;
+
+    console.log(`Attempting to delete admin with ID: ${adminId}`);
+
+    // Start a transaction
+    await db.transaction(async (connection) => {
+      // First, find the admin to get the user_id
+      const [adminResults] = await connection.execute(
+        'SELECT user_id FROM admin_users WHERE admin_id = ?',
+        [adminId]
+      );
+
+      if (!adminResults.length) {
+        throw new Error('Admin not found');
+      }
+
+      const userId = adminResults[0].user_id;
+      console.log(`Found user_id ${userId} for admin ${adminId}`);
+
+      // Delete from admin_users table
+      await connection.execute(
+        'DELETE FROM admin_users WHERE admin_id = ?',
+        [adminId]
+      );
+
+      // Delete from users table
+      await connection.execute(
+        'DELETE FROM users WHERE user_id = ?',
+        [userId]
+      );
+    });
+
+    res.status(200).json({
+      message: "Admin deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting admin:", error);
+    res.status(500).json({
+      message: "Failed to delete admin user",
+      error: error.message
+    });
+  }
+};
+
+// Delete lecturer user
+exports.deleteLecturer = async (req, res) => {
+  try {
+    const lecturerId = req.params.id;
+
+    console.log(`Attempting to delete lecturer with ID: ${lecturerId}`);
+
+    // Start a transaction
+    await db.transaction(async (connection) => {
+      // First, find the lecturer to get the user_id
+      const [lecturerResults] = await connection.execute(
+        'SELECT user_id FROM lecturer_users WHERE lecturer_id = ?',
+        [lecturerId]
+      );
+
+      if (!lecturerResults.length) {
+        throw new Error('Lecturer not found');
+      }
+
+      const userId = lecturerResults[0].user_id;
+      console.log(`Found user_id ${userId} for lecturer ${lecturerId}`);
+
+      // Delete from lecturer_users table
+      await connection.execute(
+        'DELETE FROM lecturer_users WHERE lecturer_id = ?',
+        [lecturerId]
+      );
+
+      // Delete from users table
+      await connection.execute(
+        'DELETE FROM users WHERE user_id = ?',
+        [userId]
+      );
+    });
+
+    res.status(200).json({
+      message: "Lecturer deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting lecturer:", error);
+    res.status(500).json({
+      message: "Failed to delete lecturer user",
+      error: error.message
+    });
+  }
+};
+
+// Delete student user
+exports.deleteStudent = async (req, res) => {
+  try {
+    const studentId = req.params.id;
+
+    console.log(`Attempting to delete student with ID: ${studentId}`);
+
+    // Start a transaction
+    await db.transaction(async (connection) => {
+      // First, find the student to get the user_id
+      const [studentResults] = await connection.execute(
+        'SELECT user_id FROM students WHERE student_id = ?',
+        [studentId]
+      );
+
+      if (!studentResults.length) {
+        throw new Error('Student not found');
+      }
+
+      const userId = studentResults[0].user_id;
+      console.log(`Found user_id ${userId} for student ${studentId}`);
+
+      // Delete from students table
+      await connection.execute(
+        'DELETE FROM students WHERE student_id = ?',
+        [studentId]
+      );
+
+      // Delete from users table
+      await connection.execute(
+        'DELETE FROM users WHERE user_id = ?',
+        [userId]
+      );
+    });
+
+    res.status(200).json({
+      message: "Student deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting student:", error);
+    res.status(500).json({
+      message: "Failed to delete student user",
       error: error.message
     });
   }

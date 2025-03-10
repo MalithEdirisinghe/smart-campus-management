@@ -45,9 +45,9 @@ const LoginPage = () => {
       if (data.role === 'student') {
         navigate('/student/profile');
       } else if (data.role === 'admin') {
-        navigate('/admin/dashboard');
+        alert("This account is admin account. So please switch the user");
       } else if (data.role === 'lecturer') {
-        navigate('/lecturer/dashboard');
+        alert("This account is lecture account. So please switch the user");
       }
     } catch (error) {
       setError(error.message || 'Login failed. Please check your credentials.');
