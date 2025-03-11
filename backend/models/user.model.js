@@ -42,7 +42,6 @@ const User = {
       FROM users WHERE user_id = ?
     `;
     
-    // Ensure this specifically returns the raw buffer data for profile_image
     console.log("Executing findById query for user:", userId);
     
     try {
@@ -51,7 +50,6 @@ const User = {
       
       if (!results.length) return null;
       
-      // Log profile image details
       if (results[0].profile_image) {
         console.log("Raw profile image from DB:", 
                     typeof results[0].profile_image,
@@ -79,11 +77,9 @@ const User = {
   
   // Update user profile with dynamic field handling
   update: async (userId, userData) => {
-    // Create query parts dynamically based on provided data
     const updateFields = [];
     const queryParams = [];
     
-    // Add fields that are present in userData
     if (userData.firstName !== undefined) {
       updateFields.push('first_name = ?');
       queryParams.push(userData.firstName);
@@ -114,19 +110,27 @@ const User = {
       queryParams.push(userData.contactNumber);
     }
     
-    // Handle profile image as BLOB
+    // Handle profile image updates.
+    // Support both camelCase (profileImage/profileImageType) and snake_case (profile_image/profile_image_type).
+    let imageProvided = false;
     if (userData.profileImage !== undefined) {
+      imageProvided = true;
       updateFields.push('profile_image = ?');
       queryParams.push(userData.profileImage);
-      
-      // If image type is provided
       if (userData.profileImageType !== undefined) {
         updateFields.push('profile_image_type = ?');
         queryParams.push(userData.profileImageType);
       }
+    } else if (userData.profile_image !== undefined) {
+      imageProvided = true;
+      updateFields.push('profile_image = ?');
+      queryParams.push(userData.profile_image);
+      if (userData.profile_image_type !== undefined) {
+        updateFields.push('profile_image_type = ?');
+        queryParams.push(userData.profile_image_type);
+      }
     }
     
-    // Make sure we have fields to update
     if (updateFields.length === 0) {
       return false; // Nothing to update
     }
@@ -134,15 +138,15 @@ const User = {
     // Add userId as the last parameter
     queryParams.push(userId);
     
-    const query = `UPDATE users SET ${updateFields.join(', ')} WHERE user_id = ?`;
+    const sql = `UPDATE users SET ${updateFields.join(', ')} WHERE user_id = ?`;
     
     try {
-      console.log("Executing update query:", query);
-      console.log("Parameters:", queryParams.map(p => 
+      console.log("Executing update query:", sql);
+      console.log("Parameters:", queryParams.map(p =>
         Buffer.isBuffer(p) ? `[Buffer of ${p.length} bytes]` : p
       ));
       
-      const result = await db.query(query, queryParams);
+      const result = await db.query(sql, queryParams);
       return result.affectedRows > 0;
     } catch (error) {
       console.error("Error updating user:", error);
@@ -188,7 +192,6 @@ const User = {
 
 // Helper function to convert snake_case to camelCase for user data
 const formatUserData = (user) => {
-  // Log the incoming user object to verify fields
   console.log("Formatting user data with these fields:", Object.keys(user));
   console.log("Profile image exists in raw data:", !!user.profile_image);
   
@@ -198,7 +201,7 @@ const formatUserData = (user) => {
     role: user.role,
     firstName: user.first_name,
     lastName: user.last_name,
-    profileImage: user.profile_image, // This is the critical line
+    profileImage: user.profile_image, // Raw BLOB data
     profileImageType: user.profile_image_type,
     dateOfBirth: user.date_of_birth,
     gender: user.gender,

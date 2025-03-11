@@ -13,6 +13,7 @@ import AdminResources from './components/admin/AdminResources';
 import StudentProfile from './components/student/StudentProfile';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LecturerMyClasses from './components/lecture/LecturerMyClasses';
+import LectureProfile from "./components/lecture/LectureProfile";
 import './App.css';
 
 function App() {
@@ -109,6 +110,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['lecturer']}>
                 <LecturerMyClasses />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lecturer/profile"
+            element={
+              <ProtectedRoute allowedRoles={['lecturer']}>
+                <LectureProfile />
               </ProtectedRoute>
             }
           />

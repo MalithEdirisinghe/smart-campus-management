@@ -825,3 +825,59 @@ exports.deleteStudent = async (req, res) => {
     });
   }
 };
+
+// Fetch student reports
+exports.getStudentReports = async (req, res) => {
+  try {
+    const query = `
+          SELECT s.student_id, u.first_name AS studentName, s.batch, c.course_name AS module, r.grade AS results
+          FROM students s
+          JOIN users u ON s.user_id = u.user_id
+          JOIN results r ON s.student_id = r.student_id
+          JOIN courses c ON r.course_id = c.course_id;
+      `;
+
+    const studentReports = await db.query(query);
+    console.log("Fetched Student Reports:", studentReports); // Log fetched data
+
+    res.status(200).json(studentReports);
+  } catch (error) {
+    console.error("Error fetching student reports:", error);
+    res.status(500).json({
+      message: "Failed to fetch student reports!",
+      error: error.message
+    });
+  }
+};
+
+
+// Fetch lecturer reports
+exports.getLecturerReports = async (req, res) => {
+  try {
+    const query = `
+          SELECT 
+    l.lecturer_id, 
+    u.first_name AS lecturerName, 
+    l.department, 
+    c.course_name AS module, 
+    c.start_date AS startDate, 
+    c.end_date AS endDate
+FROM lecturer_users l
+JOIN users u ON l.user_id = u.user_id
+JOIN courses c ON l.lecturer_id = c.lecturer_id;
+
+      `;
+
+    const lecturerReports = await db.query(query);
+    console.log("Fetched Lecturer Reports:", lecturerReports); // Log fetched data
+
+    res.status(200).json(lecturerReports);
+  } catch (error) {
+    console.error("Error fetching lecturer reports:", error);
+    res.status(500).json({
+      message: "Failed to fetch lecturer reports!",
+      error: error.message
+    });
+  }
+};
+

@@ -16,7 +16,7 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Static files for uploads
+// Serve static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Database setup
@@ -34,6 +34,7 @@ db.testConnection().then(connected => {
 require('./routes/auth.routes')(app);
 require('./routes/student.routes')(app);
 require('./routes/admin.routes')(app);
+require('./routes/lecturer.routes')(app);  // Added lecturer routes
 require('./routes/event.routes')(app);
 require('./routes/resource.routes')(app);
 require('./routes/communication.routes')(app); 

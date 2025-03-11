@@ -239,7 +239,25 @@ const Student = {
     } catch (error) {
       throw error;
     }
-  }
+  },
+
+  // Fetch student reports
+  getStudentReports: async () => {
+    const query = `
+      SELECT s.student_id, u.first_name AS studentName, s.batch, m.module_name AS module, r.grade AS results
+      FROM students s
+      JOIN users u ON s.user_id = u.user_id
+      JOIN results r ON s.student_id = r.student_id
+      JOIN modules m ON r.module_id = m.module_id
+    `;
+    
+    try {
+      const results = await db.query(query);
+      return results;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 // Helper function to convert snake_case to camelCase for student data
