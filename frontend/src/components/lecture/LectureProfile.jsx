@@ -9,7 +9,6 @@ const LectureProfile = () => {
   const [error, setError] = useState(null);
 
   // Using standardized field names that match backend expectations:
-  // dateOfBirth instead of dob and contactNumber instead of contact
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
