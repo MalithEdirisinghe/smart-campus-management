@@ -58,42 +58,43 @@ const Event = {
       SELECT e.*, u.first_name, u.last_name
       FROM events e
       JOIN users u ON e.created_by = u.user_id
+      JOIN event_audience ea ON e.event_id = ea.event_id
+      WHERE ea.role = ?
     `;
-    
-    const queryParams = [];
-    
-    // Add filters if provided
-    if (filters.role) {
-      query += `
-        JOIN event_audience ea ON e.event_id = ea.event_id
-        WHERE ea.role = ?
-      `;
-      queryParams.push(filters.role);
-    }
-    
-    // Add order by clause
-    query += ` ORDER BY e.created_at DESC`;
-    
-    // Add pagination if provided
-    if (filters.limit) {
-      query += ` LIMIT ?`;
-      queryParams.push(parseInt(filters.limit));
-      
-      if (filters.offset) {
-        query += ` OFFSET ?`;
-        queryParams.push(parseInt(filters.offset));
-      }
-    }
-    
+
+    const queryParams = [filters.role];
+
+    console.log("Executing query for role:", filters.role); // Debugging log
+
     const events = await db.query(query, queryParams);
-    
-    // For each event, get its target audience and notification settings
+
+    // Fetch and attach target audience for each event
     for (const event of events) {
       event.targetAudience = await Event.getTargetAudience(event.event_id);
       event.notifications = await Event.getNotificationSettings(event.event_id);
     }
-    
+
     return events;
+  },
+
+  getTargetAudience: async (eventId) => {
+    const query = `
+      SELECT role FROM event_audience
+      WHERE event_id = ?
+    `;
+
+    const roles = await db.query(query, [eventId]);
+    return roles.map(r => r.role);
+  },
+
+  getNotificationSettings: async (eventId) => {
+    const query = `
+      SELECT role, is_sent, sent_at
+      FROM event_notifications
+      WHERE event_id = ?
+    `;
+
+    return await db.query(query, [eventId]);
   },
   
   // Get a single event by ID

@@ -68,4 +68,11 @@ module.exports = function (app) {
     },
     controller.getEvents
   );
+
+  app.get(
+    "/api/events",
+    [authJwt.verifyToken], // This ensures the user is authenticated
+    controller.getAllEvents
+  );
+  
 };

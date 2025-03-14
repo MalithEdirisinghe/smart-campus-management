@@ -1,5 +1,6 @@
 const { Lecturer } = require('../models'); // Sequelize model from models/index.js
 const User = require('../models/user.model'); // Plain user model with findById & update methods
+const db = require('../models/db');
 
 // Helper function to process the profile image (converts BLOB to base64 if necessary)
 const processProfileImage = (user) => {
@@ -59,6 +60,65 @@ exports.getProfile = async (req, res) => {
     });
   }
 };
+
+// lecturer.controller.js
+exports.getClasses = async (req, res) => {
+  try {
+    // For example, fetch all classes from 'lecturer_classes' table
+    // or filter by lecturerId, etc.
+    const classes = await db.query('SELECT * FROM lecturer_classes');
+    res.status(200).json(classes);
+  } catch (err) {
+    console.error("Error fetching classes:", err);
+    res.status(500).json({ message: "Failed to fetch classes" });
+  }
+};
+
+exports.getAttendance = async (req, res) => {
+  try {
+    // For example, parse query params: module, batch, date
+    const { module, batch, date } = req.query;
+    // Query your attendance table accordingly...
+    const attendance = await db.query('SELECT * FROM attendance WHERE ...');
+    res.status(200).json(attendance);
+  } catch (err) {
+    console.error("Error fetching attendance:", err);
+    res.status(500).json({ message: "Failed to fetch attendance" });
+  }
+};
+
+exports.addClass = async (req, res) => {
+    try {
+      // Destructure expected fields from the request body
+      const { batch, module, startDate, endDate, classroom } = req.body;
+      
+      // Adjust the table name below to match your actual table name.
+      // For example, if your table is named "lecturer_classes", use that.
+      const insertQuery = `
+        INSERT INTO lecturer_classes (batch, module, start_date, end_date, classroom)
+        VALUES (?, ?, ?, ?, ?)
+      `;
+      const params = [batch, module, startDate, endDate || null, classroom];
+  
+      // Execute the query
+      await db.query(insertQuery, params);
+  
+      return res.status(201).json({
+        batch,
+        module,
+        startDate,
+        endDate,
+        classroom,
+        message: "Class added successfully!"
+      });
+    } catch (error) {
+      console.error("Error adding class:", error);
+      return res.status(500).json({
+        message: "Failed to add class!",
+        error: error.message,
+      });
+    }
+  };
 
 // PUT /api/lecturer/profile/update - Update the profile of the logged-in lecturer
 exports.updateProfile = async (req, res) => {

@@ -14,6 +14,8 @@ import StudentProfile from './components/student/StudentProfile';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LecturerMyClasses from './components/lecture/LecturerMyClasses';
 import LectureProfile from "./components/lecture/LectureProfile";
+import LectureStdMng from "./components/lecture/LectureStdMng";
+import LectureEvent from "./components/lecture/LectureEvent";
 import './App.css';
 
 function App() {
@@ -118,6 +120,22 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['lecturer']}>
                 <LectureProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lecturer/students"
+            element={
+              <ProtectedRoute allowedRoles={['lecturer']}>
+                <LectureStdMng />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lecturer/events"
+            element={
+              <ProtectedRoute allowedRoles={['lecturer']}>
+                <LectureEvent />
               </ProtectedRoute>
             }
           />

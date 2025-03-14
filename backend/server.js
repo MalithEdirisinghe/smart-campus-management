@@ -37,7 +37,9 @@ require('./routes/admin.routes')(app);
 require('./routes/lecturer.routes')(app);  // Added lecturer routes
 require('./routes/event.routes')(app);
 require('./routes/resource.routes')(app);
-require('./routes/communication.routes')(app); 
+require('./routes/communication.routes')(app);
+const attendanceRoutes = require("./routes/attendance.routes");
+app.use("/api", attendanceRoutes);
 
 // Root route
 app.get("/", (req, res) => {

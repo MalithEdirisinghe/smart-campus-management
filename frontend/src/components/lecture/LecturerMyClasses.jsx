@@ -1,139 +1,866 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './LecturerMyClasses.css';
-import defaultProfileImage from '../../assets/default-profile.png';
+// import React, { useState, useEffect, useRef } from "react";
+// import { useNavigate } from "react-router-dom";
+// import "./LecturerMyClasses.css";
+// import defaultProfileImage from "../../assets/default-profile.png";
+
+// const LecturerMyClasses = () => {
+//   const navigate = useNavigate();
+//   const [isLoading, setIsLoading] = useState(true);
+//   const [lecturer, setLecturer] = useState(null);
+//   const [error, setError] = useState(null);
+
+//   // Separate state for Class Management and Attendance filters
+//   const [selectedClassModule, setSelectedClassModule] = useState("Networking");
+//   const [selectedClassBatch, setSelectedClassBatch] = useState("COM12");
+//   const [selectedAttendanceModule, setSelectedAttendanceModule] = useState("Networking");
+//   const [selectedAttendanceBatch, setSelectedAttendanceBatch] = useState("COM12");
+//   const [selectedDate, setSelectedDate] = useState(new Date());
+
+//   // State for fetched data from backend (instead of mock data)
+//   const [classData, setClassData] = useState([]);
+//   const [attendanceData, setAttendanceData] = useState([]);
+
+//   // Modal state for Add Module functionality
+//   const [showAddModal, setShowAddModal] = useState(false);
+//   const [newModuleData, setNewModuleData] = useState({
+//     batch: "",
+//     startDate: "",
+//     endDate: "",
+//     classroom: ""
+//   });
+
+//   const datePickerRef = useRef(null);
+
+//   // Available modules and batches (could also be fetched from backend)
+//   const modules = ["Networking", "Database Management", "Programming"];
+//   const batches = ["COM12", "COM07", "COM13"];
+
+//   // Handlers for Class Management filters
+//   const handleClassModuleChange = (e) => {
+//     setSelectedClassModule(e.target.value);
+//   };
+
+//   const handleClassBatchChange = (e) => {
+//     setSelectedClassBatch(e.target.value);
+//   };
+
+//   // Handlers for Attendance filters
+//   const handleAttendanceModuleChange = (e) => {
+//     setSelectedAttendanceModule(e.target.value);
+//   };
+
+//   const handleAttendanceBatchChange = (e) => {
+//     setSelectedAttendanceBatch(e.target.value);
+//   };
+
+//   const handleDateChange = (e) => {
+//     setSelectedDate(new Date(e.target.value));
+//   };
+
+//   // Helper: Format Date as YYYY-MM-DD for input[type="date"]
+//   const getISODate = (date) => {
+//     if (!date) return "";
+//     const d = new Date(date);
+//     return `${d.getFullYear()}-${(d.getMonth() + 1)
+//       .toString()
+//       .padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}`;
+//   };
+
+//   // Fetch classes from backend using filters (for class management)
+//   const fetchClasses = async () => {
+//     try {
+//       const token = localStorage.getItem("token");
+//       if (!token) throw new Error("Authentication token not found");
+//       const response = await fetch("http://localhost:8080/api/lecturer/classes", {
+//         method: "GET",
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//           "x-access-token": token,
+//           "Content-Type": "application/json",
+//         },
+//       });
+//       if (!response.ok) {
+//         const errorData = await response.json();
+//         throw new Error(errorData.message || "Failed to fetch classes");
+//       }
+//       const data = await response.json();
+//       console.log("Classes fetched:", data);
+//       setClassData(data);
+//       console.log("Class Data: ", data);
+//     } catch (error) {
+//       console.error("Error fetching classes:", error);
+//       setError(error.message);
+//     }
+//   };
+
+//   // Fetch attendance data from backend using attendance filters
+//   const fetchAttendance = async () => {
+//     try {
+//       const token = localStorage.getItem("token");
+//       if (!token) throw new Error("Authentication token not found");
+//       const formattedDate = getISODate(selectedDate);
+//       const response = await fetch(
+//         `http://localhost:8080/api/lecturer/attendance?module=${encodeURIComponent(
+//           selectedAttendanceModule
+//         )}&batch=${encodeURIComponent(selectedAttendanceBatch)}&date=${formattedDate}`,
+//         {
+//           method: "GET",
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//             "x-access-token": token,
+//             "Content-Type": "application/json",
+//           },
+//         }
+//       );
+//       if (!response.ok) {
+//         const errorData = await response.json();
+//         throw new Error(errorData.message || "Failed to fetch attendance");
+//       }
+//       const data = await response.json();
+//       console.log("Attendance data fetched:", data);
+//       setAttendanceData(data);
+//     } catch (error) {
+//       console.error("Error fetching attendance data:", error);
+//       setError(error.message);
+//     }
+//   };
+
+//   // Navigation handler for sidebar links
+//   const handleNavigate = (path) => {
+//     navigate(path);
+//   };
+
+//   // Helper to get profile image source.
+//   const getProfileImageSrc = () => {
+//     if (lecturer && lecturer.profileImage) {
+//       return lecturer.profileImage;
+//     }
+//     return defaultProfileImage;
+//   };
+
+//   // Fetch lecturer profile data from the backend
+//   useEffect(() => {
+//     const fetchLecturerData = async () => {
+//       try {
+//         setIsLoading(true);
+//         const token = localStorage.getItem("token");
+//         if (!token) {
+//           throw new Error("Authentication token not found");
+//         }
+//         const response = await fetch("http://localhost:8080/api/lecturer/profile", {
+//           method: "GET",
+//           headers: {
+//             "Content-Type": "application/json",
+//             Authorization: `Bearer ${token}`,
+//             "x-access-token": token,
+//           },
+//         });
+//         if (!response.ok) {
+//           const errorData = await response.json();
+//           throw new Error(errorData.message || "Failed to fetch lecturer profile");
+//         }
+//         const data = await response.json();
+//         console.log("Lecturer profile fetched:", data);
+//         setLecturer({
+//           firstName: data.firstName || "Jon",
+//           lastName: data.lastName || "Smith",
+//           lecturerId: data.lecturerId || "L001",
+//           role: data.role || "Lecturer",
+//           department: data.department || "Computing",
+//           profileImage: data.profileImage || null,
+//         });
+//         setIsLoading(false);
+//       } catch (error) {
+//         console.error("Error fetching lecturer data:", error);
+//         setIsLoading(false);
+//         if (error.message.includes("401") || error.message.includes("Authentication")) {
+//           localStorage.removeItem("token");
+//           localStorage.removeItem("user");
+//           navigate("/admin/login");
+//         }
+//       }
+//     };
+
+//     fetchLecturerData();
+//   }, [navigate]);
+
+//   // Automatically fetch classes and attendance data on mount or when filters change
+//   useEffect(() => {
+//     fetchClasses();
+//     fetchAttendance();
+//   }, [selectedClassModule, selectedClassBatch, selectedAttendanceModule, selectedAttendanceBatch, selectedDate]);
+
+//   // Modal handlers for Add Module functionality
+//   const openAddModal = () => {
+//     setNewModuleData({
+//       batch: "",
+//       startDate: "",
+//       endDate: "",
+//       classroom: "",
+//     });
+//     setShowAddModal(true);
+//   };
+
+//   const closeAddModal = () => {
+//     setShowAddModal(false);
+//   };
+
+//   const handleModalInputChange = (e) => {
+//     const { name, value } = e.target;
+//     setNewModuleData((prev) => ({ ...prev, [name]: value }));
+//   };
+
+//   const handleAddModuleSubmit = async (e) => {
+//     e.preventDefault();
+//     try {
+//       const token = localStorage.getItem("token");
+//       if (!token) throw new Error("Authentication token not found");
+
+//       // Use the selected module from the class management filter (no need to send moduleName)
+//       const payload = {
+//         batch: newModuleData.batch,
+//         module: selectedClassModule, // Use selectedClassModule
+//         startDate: newModuleData.startDate,
+//         endDate: newModuleData.endDate,
+//         classroom: newModuleData.classroom,
+//       };
+
+//       const response = await fetch("http://localhost:8080/api/lecturer/classes", {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//           Authorization: `Bearer ${token}`,
+//           "x-access-token": token,
+//         },
+//         body: JSON.stringify(payload),
+//       });
+//       if (!response.ok) {
+//         const errorData = await response.json();
+//         throw new Error(errorData.message || "Failed to add module");
+//       }
+//       const data = await response.json();
+//       console.log("Module added:", data);
+//       // Update classData state to include the newly added class.
+//       setClassData((prev) => [...prev, data]);
+//       closeAddModal();
+//     } catch (error) {
+//       console.error("Error adding module:", error);
+//       setError(error.message);
+//     }
+//   };
+
+//   // Dummy handler functions for Edit, Delete, and Save actions for classes and attendance.
+//   const handleEditClass = () => {
+//     console.log("Edit class clicked");
+//   };
+
+//   const handleDeleteClass = () => {
+//     console.log("Delete class clicked");
+//   };
+
+//   const handleSaveClass = () => {
+//     console.log("Save class clicked");
+//   };
+
+//   const handleAddAttendance = () => {
+//     console.log("Add attendance clicked");
+//   };
+
+//   const handleEditAttendance = () => {
+//     console.log("Edit attendance clicked");
+//   };
+
+//   const handleDeleteAttendance = () => {
+//     console.log("Delete attendance clicked");
+//   };
+
+//   const handleSaveAttendance = () => {
+//     console.log("Save attendance clicked");
+//   };
+
+//   // Compute filtered class data based on selected module for class management
+//   // const filteredClassData = classData.filter(
+//   //   (classItem) => classItem.module === selectedClassModule
+//   // );
+//   const filteredClassData = classData.filter(
+//     (classItem) =>
+//       classItem.module.trim().toLowerCase() === selectedClassModule.trim().toLowerCase()
+//   );
+  
+//   if (isLoading) {
+//     return (
+//       <div className="loading-container">
+//         <div className="loading-spinner"></div>
+//         <p>Loading class data...</p>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="lecturer-classes-container">
+//       {/* Left Sidebar */}
+//       <div className="sidebar">
+//         <div className="profile-summary">
+//           <div className="profile-image-container">
+//             <img
+//               src={getProfileImageSrc()}
+//               alt="Profile"
+//               className="profile-image"
+//               onError={(e) => {
+//                 console.error("Error loading profile image");
+//                 e.target.onerror = null;
+//                 e.target.src = defaultProfileImage;
+//               }}
+//             />
+//           </div>
+//           <div className="profile-info">
+//             <div className="role">{lecturer.role}</div>
+//             <div className="name">
+//               {lecturer.firstName} {lecturer.lastName}
+//             </div>
+//             <div className="id-display">ID: {lecturer.lecturerId}</div>
+//           </div>
+//         </div>
+
+//         <nav className="sidebar-nav">
+//           <ul>
+//             <li
+//               className="active"
+//               onClick={() => handleNavigate("/lecturer/classes")}
+//             >
+//               My Classes
+//             </li>
+//             <li onClick={() => handleNavigate("/lecturer/students")}>
+//               Student Management
+//             </li>
+//             <li onClick={() => handleNavigate("/lecturer/events")}>
+//               Events/Announcements
+//             </li>
+//             <li onClick={() => handleNavigate("/lecturer/assignments")}>
+//               Assignments
+//             </li>
+//             <li onClick={() => handleNavigate("/lecturer/resources")}>
+//               Resources
+//             </li>
+//             <li onClick={() => handleNavigate("/lecturer/communication")}>
+//               Communication
+//             </li>
+//           </ul>
+//         </nav>
+//       </div>
+
+//       {/* Main Content */}
+//       <div className="main-content">
+//         <div className="top-bar">
+//           <div className="notification-icons">
+//             <div className="notification-icon">
+//               <svg
+//                 xmlns="http://www.w3.org/2000/svg"
+//                 width="24"
+//                 height="24"
+//                 viewBox="0 0 24 24"
+//                 fill="none"
+//                 stroke="currentColor"
+//                 strokeWidth="2"
+//               >
+//                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+//                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+//               </svg>
+//             </div>
+//             <div
+//               className="profile-icon"
+//               onClick={() => handleNavigate("/lecturer/profile")}
+//               style={{ cursor: "pointer" }}
+//             >
+//               <svg
+//                 xmlns="http://www.w3.org/2000/svg"
+//                 width="24"
+//                 height="24"
+//                 viewBox="0 0 24 24"
+//                 fill="none"
+//                 stroke="currentColor"
+//                 strokeWidth="2"
+//               >
+//                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+//                 <circle cx="12" cy="7" r="4"></circle>
+//               </svg>
+//             </div>
+//           </div>
+//         </div>
+
+//         <div className="class-management-content">
+//           {/* Class Management Section */}
+//           <section className="class-management-section">
+//             <h1 className="section-title">Class Management</h1>
+
+//             <div className="module-selection">
+//               <label>Select Module:</label>
+//               <select
+//                 value={selectedClassModule}
+//                 onChange={handleClassModuleChange}
+//                 className="module-select"
+//               >
+//                 {modules.map((module) => (
+//                   <option key={module} value={module}>
+//                     {module}
+//                   </option>
+//                 ))}
+//               </select>
+//             </div>
+
+//             <div className="action-buttons">
+//               <button className="action-button" onClick={fetchClasses}>
+//                 View
+//               </button>
+//               <button className="action-button" onClick={openAddModal}>
+//                 Add
+//               </button>
+//               <button className="action-button" onClick={handleEditClass}>
+//                 Edit
+//               </button>
+//               <button className="action-button" onClick={handleDeleteClass}>
+//                 Delete
+//               </button>
+//               <button className="action-button" onClick={handleSaveClass}>
+//                 Save
+//               </button>
+//             </div>
+
+//             {/* Class Table */}
+//             <div className="class-table-container">
+//               <table className="class-table">
+//                 <thead>
+//                   <tr>
+//                     <th>Batch</th>
+//                     <th>Start Date</th>
+//                     <th>End Date</th>
+//                     <th>Classroom</th>
+//                   </tr>
+//                 </thead>
+//                 <tbody>
+//                   {filteredClassData.length ? (
+//                     filteredClassData.map((classItem, index) => (
+//                       <tr key={`class-${index}`}>
+//                         <td>{classItem.batch}</td>
+//                         <td>{new Date(classItem.start_date).toISOString().substring(0, 10)}</td>
+//                         <td>{new Date(classItem.end_date).toISOString().substring(0, 10)}</td>
+//                         <td>{classItem.classroom}</td>
+//                       </tr>
+//                     ))
+//                   ) : (
+//                     <tr>
+//                       <td colSpan="4">No classes found.</td>
+//                     </tr>
+//                   )}
+//                 </tbody>
+//               </table>
+//             </div>
+//           </section>
+
+//           {/* Class Attendance Section */}
+//           <section className="class-attendance-section">
+//             <h1 className="section-title">Class Attendance</h1>
+
+//             <div className="attendance-filters">
+//               <div className="filter-group">
+//                 <label>Select Module:</label>
+//                 <select
+//                   value={selectedAttendanceModule}
+//                   onChange={handleAttendanceModuleChange}
+//                   className="module-select"
+//                 >
+//                   {modules.map((module) => (
+//                     <option key={module} value={module}>
+//                       {module}
+//                     </option>
+//                   ))}
+//                 </select>
+//               </div>
+
+//               <div className="filter-group">
+//                 <label>Select Batch:</label>
+//                 <select
+//                   value={selectedAttendanceBatch}
+//                   onChange={handleAttendanceBatchChange}
+//                   className="batch-select"
+//                 >
+//                   {batches.map((batch) => (
+//                     <option key={batch} value={batch}>
+//                       {batch}
+//                     </option>
+//                   ))}
+//                 </select>
+//               </div>
+
+//               <div className="filter-group">
+//                 <label>Select Date:</label>
+//                 <div className="date-picker-wrapper">
+//                   <input
+//                     type="date"
+//                     value={getISODate(selectedDate)}
+//                     onChange={handleDateChange}
+//                     className="date-input"
+//                   />
+//                 </div>
+//               </div>
+//             </div>
+
+//             <div className="action-buttons">
+//               <button className="action-button" onClick={fetchAttendance}>
+//                 View
+//               </button>
+//               <button className="action-button" onClick={handleAddAttendance}>
+//                 Add
+//               </button>
+//               <button className="action-button" onClick={handleEditAttendance}>
+//                 Edit
+//               </button>
+//               <button className="action-button" onClick={handleDeleteAttendance}>
+//                 Delete
+//               </button>
+//               <button className="action-button" onClick={handleSaveAttendance}>
+//                 Save
+//               </button>
+//             </div>
+
+//             {/* Attendance Table */}
+//             <div className="attendance-table-container">
+//               <table className="attendance-table">
+//                 <thead>
+//                   <tr>
+//                     <th>Student ID</th>
+//                     <th>First Name</th>
+//                     <th>Last Name</th>
+//                     <th>Date</th>
+//                     <th>Attendance</th>
+//                     <th>Classroom</th>
+//                   </tr>
+//                 </thead>
+//                 <tbody>
+//                   {attendanceData.length ? (
+//                     attendanceData.map((record, index) => (
+//                       <tr key={`attendance-${index}`}>
+//                         <td>{record.studentId}</td>
+//                         <td>{record.firstName}</td>
+//                         <td>{record.lastName}</td>
+//                         <td>{record.date}</td>
+//                         <td>{record.attendance}</td>
+//                         <td>{record.classroom}</td>
+//                       </tr>
+//                     ))
+//                   ) : (
+//                     <tr>
+//                       <td colSpan="6">No attendance records found.</td>
+//                     </tr>
+//                   )}
+//                 </tbody>
+//               </table>
+//             </div>
+//           </section>
+//         </div>
+//       </div>
+
+//       {/* Add Module Modal */}
+//       {showAddModal && (
+//         <div className="modal-overlay">
+//           <div className="modal-content">
+//             <h2>Add New Classes</h2>
+//             <form onSubmit={handleAddModuleSubmit}>
+//               {/* Display selected module instead of input */}
+//               <div className="form-group">
+//                 <label>Module:</label>
+//                 <div className="selected-module">{selectedClassModule}</div>
+//               </div>
+//               <div className="form-group">
+//                 <label htmlFor="batch">Batch:</label>
+//                 <input
+//                   type="text"
+//                   id="batch"
+//                   name="batch"
+//                   value={newModuleData.batch}
+//                   onChange={handleModalInputChange}
+//                   required
+//                 />
+//               </div>
+//               <div className="form-group">
+//                 <label htmlFor="startDate">Start Date:</label>
+//                 <input
+//                   type="date"
+//                   id="startDate"
+//                   name="startDate"
+//                   value={newModuleData.startDate}
+//                   onChange={handleModalInputChange}
+//                   required
+//                 />
+//               </div>
+//               <div className="form-group">
+//                 <label htmlFor="endDate">End Date:</label>
+//                 <input
+//                   type="date"
+//                   id="endDate"
+//                   name="endDate"
+//                   value={newModuleData.endDate}
+//                   onChange={handleModalInputChange}
+//                 />
+//               </div>
+//               <div className="form-group">
+//                 <label htmlFor="classroom">Classroom:</label>
+//                 <input
+//                   type="text"
+//                   id="classroom"
+//                   name="classroom"
+//                   value={newModuleData.classroom}
+//                   onChange={handleModalInputChange}
+//                   required
+//                 />
+//               </div>
+//               <div className="modal-actions">
+//                 <button type="button" onClick={closeAddModal}>
+//                   Cancel
+//                 </button>
+//                 <button type="submit">
+//                   Add Classes
+//                 </button>
+//               </div>
+//             </form>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// // Dummy handler functions for attendance actions.
+// const handleAddAttendance = () => {
+//   console.log("Add attendance clicked");
+// };
+
+// const handleEditAttendance = () => {
+//   console.log("Edit attendance clicked");
+// };
+
+// const handleDeleteAttendance = () => {
+//   console.log("Delete attendance clicked");
+// };
+
+// const handleSaveAttendance = () => {
+//   console.log("Save attendance clicked");
+// };
+
+// // Dummy handler functions for class actions.
+// const handleEditClass = () => {
+//   console.log("Edit class clicked");
+// };
+
+// const handleDeleteClass = () => {
+//   console.log("Delete class clicked");
+// };
+
+// const handleSaveClass = () => {
+//   console.log("Save class clicked");
+// };
+
+// // Dummy handler for modal input change and add module submit
+// const handleModalInputChange = (e) => {
+//   // This dummy function should be replaced by the one defined inside the component.
+//   console.log("Modal input changed");
+// };
+
+// const handleAddModuleSubmit = (e) => {
+//   // This dummy function should be replaced by the one defined inside the component.
+//   e.preventDefault();
+//   console.log("Add module submit clicked");
+// };
+
+// export default LecturerMyClasses;
+
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import "./LecturerMyClasses.css";
+import defaultProfileImage from "../../assets/default-profile.png";
 
 const LecturerMyClasses = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [lecturer, setLecturer] = useState(null);
-  const [selectedModule, setSelectedModule] = useState('Networking');
-  const [selectedBatch, setSelectedBatch] = useState('COM12');
+  const [error, setError] = useState(null);
+
+  // State for Class Management and Attendance filters
+  const [selectedClassModule, setSelectedClassModule] = useState("Networking");
+  const [selectedClassBatch, setSelectedClassBatch] = useState("COM12");
+  const [selectedAttendanceModule, setSelectedAttendanceModule] = useState("Networking");
+  const [selectedAttendanceBatch, setSelectedAttendanceBatch] = useState("COM12");
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // State for fetched data from backend
+  const [classData, setClassData] = useState([]);
+  const [attendanceData, setAttendanceData] = useState([]);
+
+  // Modal state for Add Module functionality
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newModuleData, setNewModuleData] = useState({
+    batch: "",
+    startDate: "",
+    endDate: "",
+    classroom: ""
+  });
+
+  // Modal state for Add Attendance functionality
+  const [showAddAttendanceModal, setShowAddAttendanceModal] = useState(false);
+  const [newAttendanceData, setNewAttendanceData] = useState({
+    studentId: "",
+    firstName: "",
+    lastName: "",
+    attendance: "",
+    classroom: ""
+  });
+
   const datePickerRef = useRef(null);
 
-  // Mock data for classes
-  const [classData, setClassData] = useState([
-    {
-      batch: 'COM12',
-      startDate: '11/01/2024',
-      endDate: '02/02/2025',
-      classroom: 'C05'
-    },
-    {
-      batch: 'COM07',
-      startDate: '09/14/2024',
-      endDate: '12/31/2025',
-      classroom: 'C13'
-    },
-    {
-      batch: 'COM13',
-      startDate: '02/16/2025',
-      endDate: '-',
-      classroom: 'C04'
-    }
-  ]);
+  // Available modules and batches
+  const modules = ["Networking", "Database Management", "Programming"];
+  const batches = ["COM12", "COM07", "COM13"];
 
-  // Mock data for attendance
-  const [attendanceData, setAttendanceData] = useState([
-    {
-      studentId: 'S001',
-      firstName: 'Kavindu',
-      lastName: 'Perera',
-      date: '02/22/2025',
-      attendance: 'Yes',
-      classroom: 'C05'
-    },
-    {
-      studentId: 'S002',
-      firstName: 'Chathura',
-      lastName: 'Lakshan',
-      date: '02/22/2025',
-      attendance: 'No',
-      classroom: 'C13'
-    },
-    {
-      studentId: 'S003',
-      firstName: 'Mohammed',
-      lastName: 'Shazi',
-      date: '02/22/2025',
-      attendance: 'Yes',
-      classroom: 'C04'
-    }
-  ]);
+  // Handlers for Class Management filters
+  const handleClassModuleChange = (e) => {
+    setSelectedClassModule(e.target.value);
+  };
 
-  // Available modules
-  const modules = ['Networking', 'Database Management', 'Programming'];
-  
-  // Available batches
-  const batches = ['COM12', 'COM07', 'COM13'];
+  const handleClassBatchChange = (e) => {
+    setSelectedClassBatch(e.target.value);
+  };
 
-  useEffect(() => {
-    // Handle clicks outside the date picker to close it
-    function handleClickOutside(event) {
-      if (datePickerRef.current && !datePickerRef.current.contains(event.target)) {
-        setShowDatePicker(false);
+  // Handlers for Attendance filters
+  const handleAttendanceModuleChange = (e) => {
+    setSelectedAttendanceModule(e.target.value);
+  };
+
+  const handleAttendanceBatchChange = (e) => {
+    setSelectedAttendanceBatch(e.target.value);
+  };
+
+  const handleDateChange = (e) => {
+    setSelectedDate(new Date(e.target.value));
+  };
+
+  // Helper: Format Date as YYYY-MM-DD for input[type="date"]
+  const getISODate = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    return `${d.getFullYear()}-${(d.getMonth() + 1)
+      .toString()
+      .padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}`;
+  };
+
+  // Fetch classes from backend using filters (for class management)
+  const fetchClasses = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Authentication token not found");
+      const response = await fetch("http://localhost:8080/api/lecturer/classes", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "x-access-token": token,
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch classes");
       }
+      const data = await response.json();
+      setClassData(data);
+    } catch (error) {
+      console.error("Error fetching classes:", error);
+      setError(error.message);
     }
+  };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [datePickerRef]);
+  // Fetch attendance data from backend using attendance filters
+  const fetchAttendance = async () => {
+    // try {
+    //   const token = localStorage.getItem("token");
+    //   if (!token) throw new Error("Authentication token not found");
+    //   const formattedDate = getISODate(selectedDate);
+    //   const response = await fetch(
+    //     `http://localhost:8080/api/lecturer/attendance?module=${encodeURIComponent(
+    //       selectedAttendanceModule
+    //     )}&batch=${encodeURIComponent(selectedAttendanceBatch)}&date=${formattedDate}`,
+    //     {
+    //       method: "GET",
+    //       headers: {
+    //         Authorization: `Bearer ${token}`,
+    //         "x-access-token": token,
+    //         "Content-Type": "application/json",
+    //       },
+    //     }
+    //   );
+    //   if (!response.ok) {
+    //     const errorData = await response.json();
+    //     throw new Error(errorData.message || "Failed to fetch attendance");
+    //   }
+    //   const data = await response.json();
+    //   console.log("Attendance data fetched:", data);
+    //   setAttendanceData(data);
+    // } catch (error) {
+    //   console.error("Error fetching attendance data:", error);
+    //   setError(error.message);
+    // }
+  };
 
+  // Navigation handler for sidebar links
+  const handleNavigate = (path) => {
+    navigate(path);
+  };
+
+  // Helper to get profile image source.
+  const getProfileImageSrc = () => {
+    if (lecturer && lecturer.profileImage) {
+      return lecturer.profileImage;
+    }
+    return defaultProfileImage;
+  };
+
+  // Fetch lecturer profile data from the backend
   useEffect(() => {
     const fetchLecturerData = async () => {
       try {
         setIsLoading(true);
-
-        // Get auth token from localStorage
-        const token = localStorage.getItem('token');
-
+        const token = localStorage.getItem("token");
         if (!token) {
-          throw new Error('Authentication token not found');
+          throw new Error("Authentication token not found");
         }
-
-        // Use cached user data if available
-        const cachedUser = JSON.parse(localStorage.getItem('user') || '{}');
-
-        // In a real app, fetch lecturer profile from API
-        // For now, use mock data or cached user data
-        if (cachedUser && cachedUser.role === 'lecturer') {
-          setLecturer({
-            firstName: cachedUser.firstName || 'Jon',
-            lastName: cachedUser.lastName || 'Smith',
-            lecturerId: cachedUser.lecturerId || 'L001',
-            role: 'Lecturer',
-            department: cachedUser.department || 'Computing',
-            profileImage: cachedUser.profileImage || null
-          });
-        } else {
-          // Mock lecturer data
-          setLecturer({
-            firstName: 'Jon',
-            lastName: 'Smith',
-            lecturerId: 'L001',
-            role: 'Lecturer',
-            department: 'Computing',
-            profileImage: null
-          });
+        const response = await fetch("http://localhost:8080/api/lecturer/profile", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            "x-access-token": token,
+          },
+        });
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to fetch lecturer profile");
         }
-
-        // Fetch class data from API (implement when API is ready)
-        // For now, use mock data defined above
-
+        const data = await response.json();
+        console.log("Lecturer profile fetched:", data);
+        setLecturer({
+          firstName: data.firstName || "Jon",
+          lastName: data.lastName || "Smith",
+          lecturerId: data.lecturerId || "L001",
+          role: data.role || "Lecturer",
+          department: data.department || "Computing",
+          profileImage: data.profileImage || null,
+        });
         setIsLoading(false);
       } catch (error) {
-        console.error('Error fetching lecturer data:', error);
+        console.error("Error fetching lecturer data:", error);
         setIsLoading(false);
-
-        // If unauthorized, redirect to login
-        if (error.message.includes('401') || error.message.includes('Authentication')) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          navigate('/admin/login');
+        if (error.message.includes("401") || error.message.includes("Authentication")) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          navigate("/admin/login");
         }
       }
     };
@@ -141,78 +868,164 @@ const LecturerMyClasses = () => {
     fetchLecturerData();
   }, [navigate]);
 
-  const handleNavigate = (path) => {
-    navigate(path);
+  // Automatically fetch classes and attendance data on mount or when filters change
+  useEffect(() => {
+    fetchClasses();
+    fetchAttendance();
+  }, [selectedClassModule, selectedClassBatch, selectedAttendanceModule, selectedAttendanceBatch, selectedDate]);
+
+  // Modal handlers for Add Module functionality
+  const openAddModal = () => {
+    setNewModuleData({
+      batch: "",
+      startDate: "",
+      endDate: "",
+      classroom: "",
+    });
+    setShowAddModal(true);
   };
 
-  const handleModuleChange = (e) => {
-    setSelectedModule(e.target.value);
+  const closeAddModal = () => {
+    setShowAddModal(false);
   };
 
-  const handleBatchChange = (e) => {
-    setSelectedBatch(e.target.value);
+  const handleModalInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewModuleData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleDateChange = (e) => {
-    setSelectedDate(new Date(e.target.value));
+  const handleAddModuleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Authentication token not found");
+
+      // Use the selected module from the class management filter (no need to send moduleName)
+      const payload = {
+        batch: newModuleData.batch,
+        module: selectedClassModule, // Use selectedClassModule
+        startDate: newModuleData.startDate,
+        endDate: newModuleData.endDate,
+        classroom: newModuleData.classroom,
+      };
+
+      const response = await fetch("http://localhost:8080/api/lecturer/classes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "x-access-token": token,
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to add module");
+      }
+      const data = await response.json();
+      console.log("Module added:", data);
+      // Update classData state to include the newly added class.
+      setClassData((prev) => [...prev, data]);
+      closeAddModal();
+    } catch (error) {
+      console.error("Error adding module:", error);
+      setError(error.message);
+    }
   };
 
-  const formatDate = (date) => {
-    if (!date) return '';
-    const d = new Date(date);
-    return `${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getDate().toString().padStart(2, '0')}/${d.getFullYear()}`;
+  // Modal handlers for Add Attendance functionality
+  const openAddAttendanceModal = () => {
+    setNewAttendanceData({
+      studentId: "",
+      firstName: "",
+      lastName: "",
+      attendance: "",
+      classroom: "",
+    });
+    setShowAddAttendanceModal(true);
   };
 
-  // Get date in YYYY-MM-DD format for input[type="date"]
-  const getISODate = (date) => {
-    if (!date) return '';
-    const d = new Date(date);
-    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+  const closeAddAttendanceModal = () => {
+    setShowAddAttendanceModal(false);
   };
 
-  // View, Add, Edit, Delete, Save handlers for class management
-  const handleViewClass = () => {
-    console.log('View class clicked');
+  const handleAttendanceModalInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewAttendanceData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddClass = () => {
-    console.log('Add class clicked');
+  const handleAddAttendanceSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("Authentication token not found");
+
+      const payload = {
+        studentId: newAttendanceData.studentId,
+        firstName: newAttendanceData.firstName,
+        lastName: newAttendanceData.lastName,
+        attendance: newAttendanceData.attendance,
+        classroom: newAttendanceData.classroom,
+        module: selectedAttendanceModule,
+        batch: selectedAttendanceBatch,
+        date: getISODate(selectedDate),
+      };
+
+      const response = await fetch("http://localhost:8080/api/lecturer/attendance", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "x-access-token": token,
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to add attendance");
+      }
+      const data = await response.json();
+      console.log("Attendance added:", data);
+      // Update attendanceData state to include the newly added attendance record.
+      setAttendanceData((prev) => [...prev, data]);
+      closeAddAttendanceModal();
+    } catch (error) {
+      console.error("Error adding attendance:", error);
+      setError(error.message);
+    }
   };
 
+  // Dummy handler functions for Edit, Delete, and Save actions for classes and attendance.
   const handleEditClass = () => {
-    console.log('Edit class clicked');
+    console.log("Edit class clicked");
   };
 
   const handleDeleteClass = () => {
-    console.log('Delete class clicked');
+    console.log("Delete class clicked");
   };
 
   const handleSaveClass = () => {
-    console.log('Save class clicked');
-  };
-
-  // View, Add, Edit, Delete, Save handlers for attendance
-  const handleViewAttendance = () => {
-    console.log('View attendance clicked');
-  };
-
-  const handleAddAttendance = () => {
-    console.log('Add attendance clicked');
+    console.log("Save class clicked");
   };
 
   const handleEditAttendance = () => {
-    console.log('Edit attendance clicked');
+    console.log("Edit attendance clicked");
   };
 
   const handleDeleteAttendance = () => {
-    console.log('Delete attendance clicked');
+    console.log("Delete attendance clicked");
   };
 
   const handleSaveAttendance = () => {
-    console.log('Save attendance clicked');
+    console.log("Save attendance clicked");
   };
 
-  // If still loading, show loading spinner
+  // Compute filtered class data based on selected module for class management
+  const filteredClassData = classData.filter(
+    (classItem) =>
+      classItem.module.trim().toLowerCase() === selectedClassModule.trim().toLowerCase()
+  );
+
   if (isLoading) {
     return (
       <div className="loading-container">
@@ -228,40 +1041,49 @@ const LecturerMyClasses = () => {
       <div className="sidebar">
         <div className="profile-summary">
           <div className="profile-image-container">
-            {lecturer.profileImage ? (
-              <img
-                src={lecturer.profileImage}
-                alt="Profile"
-                className="profile-image"
-                onError={(e) => {
-                  console.error("Error loading profile image");
-                  e.target.onerror = null;
-                  e.target.src = defaultProfileImage;
-                }}
-              />
-            ) : (
-              <img
-                src={defaultProfileImage}
-                alt="Default Profile"
-                className="profile-image"
-              />
-            )}
+            <img
+              src={getProfileImageSrc()}
+              alt="Profile"
+              className="profile-image"
+              onError={(e) => {
+                console.error("Error loading profile image");
+                e.target.onerror = null;
+                e.target.src = defaultProfileImage;
+              }}
+            />
           </div>
           <div className="profile-info">
             <div className="role">{lecturer.role}</div>
-            <div className="name">{lecturer.firstName} {lecturer.lastName}</div>
+            <div className="name">
+              {lecturer.firstName} {lecturer.lastName}
+            </div>
             <div className="id-display">ID: {lecturer.lecturerId}</div>
           </div>
         </div>
 
         <nav className="sidebar-nav">
           <ul>
-            <li className="active" onClick={() => handleNavigate('/lecturer/classes')}>My Classes</li>
-            <li onClick={() => handleNavigate('/lecturer/students')}>Student Management</li>
-            <li onClick={() => handleNavigate('/lecturer/events')}>Events/Announcements</li>
-            <li onClick={() => handleNavigate('/lecturer/assignments')}>Assignments</li>
-            <li onClick={() => handleNavigate('/lecturer/resources')}>Resources</li>
-            <li onClick={() => handleNavigate('/lecturer/communication')}>Communication</li>
+            <li
+              className="active"
+              onClick={() => handleNavigate("/lecturer/classes")}
+            >
+              My Classes
+            </li>
+            <li onClick={() => handleNavigate("/lecturer/students")}>
+              Student Management
+            </li>
+            <li onClick={() => handleNavigate("/lecturer/events")}>
+              Events/Announcements
+            </li>
+            <li onClick={() => handleNavigate("/lecturer/assignments")}>
+              Assignments
+            </li>
+            <li onClick={() => handleNavigate("/lecturer/resources")}>
+              Resources
+            </li>
+            <li onClick={() => handleNavigate("/lecturer/communication")}>
+              Communication
+            </li>
           </ul>
         </nav>
       </div>
@@ -271,17 +1093,33 @@ const LecturerMyClasses = () => {
         <div className="top-bar">
           <div className="notification-icons">
             <div className="notification-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
               </svg>
             </div>
             <div
               className="profile-icon"
-              onClick={() => handleNavigate('/lecturer/profile')}
-              style={{ cursor: 'pointer' }}
+              onClick={() => handleNavigate("/lecturer/profile")}
+              style={{ cursor: "pointer" }}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                 <circle cx="12" cy="7" r="4"></circle>
               </svg>
@@ -293,28 +1131,40 @@ const LecturerMyClasses = () => {
           {/* Class Management Section */}
           <section className="class-management-section">
             <h1 className="section-title">Class Management</h1>
-            
+
             <div className="module-selection">
               <label>Select Module:</label>
-              <select 
-                value={selectedModule} 
-                onChange={handleModuleChange}
+              <select
+                value={selectedClassModule}
+                onChange={handleClassModuleChange}
                 className="module-select"
               >
-                {modules.map(module => (
-                  <option key={module} value={module}>{module}</option>
+                {modules.map((module) => (
+                  <option key={module} value={module}>
+                    {module}
+                  </option>
                 ))}
               </select>
             </div>
-            
+
             <div className="action-buttons">
-              <button className="action-button" onClick={handleViewClass}>View</button>
-              <button className="action-button" onClick={handleAddClass}>Add</button>
-              <button className="action-button" onClick={handleEditClass}>Edit</button>
-              <button className="action-button" onClick={handleDeleteClass}>Delete</button>
-              <button className="action-button" onClick={handleSaveClass}>Save</button>
+              <button className="action-button" onClick={fetchClasses}>
+                View
+              </button>
+              <button className="action-button" onClick={openAddModal}>
+                Add
+              </button>
+              <button className="action-button" onClick={handleEditClass}>
+                Edit
+              </button>
+              <button className="action-button" onClick={handleDeleteClass}>
+                Delete
+              </button>
+              <button className="action-button" onClick={handleSaveClass}>
+                Save
+              </button>
             </div>
-            
+
             {/* Class Table */}
             <div className="class-table-container">
               <table className="class-table">
@@ -327,52 +1177,62 @@ const LecturerMyClasses = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {classData.map((classItem, index) => (
-                    <tr key={`class-${index}`}>
-                      <td>{classItem.batch}</td>
-                      <td>{classItem.startDate}</td>
-                      <td>{classItem.endDate}</td>
-                      <td>{classItem.classroom}</td>
+                  {filteredClassData.length ? (
+                    filteredClassData.map((classItem, index) => (
+                      <tr key={`class-${index}`}>
+                        <td>{classItem.batch}</td>
+                        <td>{new Date(classItem.start_date).toISOString().substring(0, 10)}</td>
+                        <td>{new Date(classItem.end_date).toISOString().substring(0, 10)}</td>
+                        <td>{classItem.classroom}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4">No classes found.</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
           </section>
-          
+
           {/* Class Attendance Section */}
           <section className="class-attendance-section">
             <h1 className="section-title">Class Attendance</h1>
-            
+
             <div className="attendance-filters">
               <div className="filter-group">
                 <label>Select Module:</label>
-                <select 
-                  value={selectedModule} 
-                  onChange={handleModuleChange}
+                <select
+                  value={selectedAttendanceModule}
+                  onChange={handleAttendanceModuleChange}
                   className="module-select"
                 >
-                  {modules.map(module => (
-                    <option key={module} value={module}>{module}</option>
+                  {modules.map((module) => (
+                    <option key={module} value={module}>
+                      {module}
+                    </option>
                   ))}
                 </select>
               </div>
-              
+
               <div className="filter-group">
                 <label>Select Batch:</label>
-                <select 
-                  value={selectedBatch} 
-                  onChange={handleBatchChange}
+                <select
+                  value={selectedAttendanceBatch}
+                  onChange={handleAttendanceBatchChange}
                   className="batch-select"
                 >
-                  {batches.map(batch => (
-                    <option key={batch} value={batch}>{batch}</option>
+                  {batches.map((batch) => (
+                    <option key={batch} value={batch}>
+                      {batch}
+                    </option>
                   ))}
                 </select>
               </div>
-              
+
               <div className="filter-group">
-                <label>Select date:</label>
+                <label>Select Date:</label>
                 <div className="date-picker-wrapper">
                   <input
                     type="date"
@@ -383,45 +1243,202 @@ const LecturerMyClasses = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="action-buttons">
-              <button className="action-button" onClick={handleViewAttendance}>View</button>
-              <button className="action-button" onClick={handleAddAttendance}>Add</button>
-              <button className="action-button" onClick={handleEditAttendance}>Edit</button>
-              <button className="action-button" onClick={handleDeleteAttendance}>Delete</button>
-              <button className="action-button" onClick={handleSaveAttendance}>Save</button>
+              <button className="action-button" onClick={fetchAttendance}>
+                View
+              </button>
+              <button className="action-button" onClick={openAddAttendanceModal}>
+                Add
+              </button>
+              <button className="action-button" onClick={handleEditAttendance}>
+                Edit
+              </button>
+              <button className="action-button" onClick={handleDeleteAttendance}>
+                Delete
+              </button>
+              <button className="action-button" onClick={handleSaveAttendance}>
+                Save
+              </button>
             </div>
-            
+
             {/* Attendance Table */}
             <div className="attendance-table-container">
               <table className="attendance-table">
                 <thead>
                   <tr>
                     <th>Student ID</th>
-                    <th>First name</th>
-                    <th>Last name</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
                     <th>Date</th>
                     <th>Attendance</th>
                     <th>Classroom</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {attendanceData.map((student, index) => (
-                    <tr key={`attendance-${index}`}>
-                      <td>{student.studentId}</td>
-                      <td>{student.firstName}</td>
-                      <td>{student.lastName}</td>
-                      <td>{student.date}</td>
-                      <td>{student.attendance}</td>
-                      <td>{student.classroom}</td>
+                  {attendanceData.length ? (
+                    attendanceData.map((record, index) => (
+                      <tr key={`attendance-${index}`}>
+                        <td>{record.studentId}</td>
+                        <td>{record.firstName}</td>
+                        <td>{record.lastName}</td>
+                        <td>{record.date}</td>
+                        <td>{record.attendance}</td>
+                        <td>{record.classroom}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6">No attendance records found.</td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
           </section>
         </div>
       </div>
+
+      {/* Add Module Modal */}
+      {showAddModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>Add New Classes</h2>
+            <form onSubmit={handleAddModuleSubmit}>
+              {/* Display selected module instead of input */}
+              <div className="form-group">
+                <label>Module:</label>
+                <div className="selected-module">{selectedClassModule}</div>
+              </div>
+              <div className="form-group">
+                <label htmlFor="batch">Batch:</label>
+                <input
+                  type="text"
+                  id="batch"
+                  name="batch"
+                  value={newModuleData.batch}
+                  onChange={handleModalInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="startDate">Start Date:</label>
+                <input
+                  type="date"
+                  id="startDate"
+                  name="startDate"
+                  value={newModuleData.startDate}
+                  onChange={handleModalInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="endDate">End Date:</label>
+                <input
+                  type="date"
+                  id="endDate"
+                  name="endDate"
+                  value={newModuleData.endDate}
+                  onChange={handleModalInputChange}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="classroom">Classroom:</label>
+                <input
+                  type="text"
+                  id="classroom"
+                  name="classroom"
+                  value={newModuleData.classroom}
+                  onChange={handleModalInputChange}
+                  required
+                />
+              </div>
+              <div className="modal-actions">
+                <button type="button" onClick={closeAddModal}>
+                  Cancel
+                </button>
+                <button type="submit">
+                  Add Classes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Attendance Modal */}
+      {showAddAttendanceModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>Add Attendance</h2>
+            <form onSubmit={handleAddAttendanceSubmit}>
+              <div className="form-group">
+                <label htmlFor="studentId">Student ID:</label>
+                <input
+                  type="text"
+                  id="studentId"
+                  name="studentId"
+                  value={newAttendanceData.studentId}
+                  onChange={handleAttendanceModalInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="firstName">First Name:</label>
+                <input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={newAttendanceData.firstName}
+                  onChange={handleAttendanceModalInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="lastName">Last Name:</label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={newAttendanceData.lastName}
+                  onChange={handleAttendanceModalInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="attendance">Attendance:</label>
+                <input
+                  type="text"
+                  id="attendance"
+                  name="attendance"
+                  value={newAttendanceData.attendance}
+                  onChange={handleAttendanceModalInputChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="classroom">Classroom:</label>
+                <input
+                  type="text"
+                  id="classroom"
+                  name="classroom"
+                  value={newAttendanceData.classroom}
+                  onChange={handleAttendanceModalInputChange}
+                  required
+                />
+              </div>
+              <div className="modal-actions">
+                <button type="button" onClick={closeAddAttendanceModal}>
+                  Cancel
+                </button>
+                <button type="submit">
+                  Add Attendance
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

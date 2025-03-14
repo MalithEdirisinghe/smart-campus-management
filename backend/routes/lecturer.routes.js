@@ -24,17 +24,21 @@ module.exports = function(app) {
     [authJwt.verifyToken, authJwt.isLecturer, upload.single('profileImage')],
     controller.updateProfile
   );
+  app.post(
+    "/api/lecturer/classes",
+    [authJwt.verifyToken, authJwt.isLecturer],
+    controller.addClass
+  );  
+  app.get(
+    '/api/lecturer/classes',
+    [authJwt.verifyToken, authJwt.isLecturer],
+    controller.getClasses  // <-- define this method in lecturer.controller
+  );
 
-  // Optional routes (ensure these methods are exported in lecturer.controller.js)
-//   app.get(
-//     "/api/lecturer/users",
-//     [authJwt.verifyToken, authJwt.isLecturer],
-//     controller.getLecturers
-//   );
-
-//   app.get(
-//     "/api/lecturer/:id",
-//     [authJwt.verifyToken, authJwt.isLecturer],
-//     controller.getLecturerById
-//   );
+  // Example route for GET /api/lecturer/attendance
+  app.get(
+    '/api/lecturer/attendance',
+    [authJwt.verifyToken, authJwt.isLecturer],
+    controller.getAttendance  // <-- define this method in lecturer.controller
+  );
 };

@@ -1,6 +1,7 @@
 // controllers/event.controller.js
 const Event = require('../models/event.model');
 const User = require('../models/user.model');
+const db = require("../models/db");
 
 // Create a new event or announcement
 exports.createEvent = async (req, res) => {
@@ -65,26 +66,24 @@ exports.createEvent = async (req, res) => {
 // Get all events/announcements
 exports.getAllEvents = async (req, res) => {
   try {
-    const { role, limit, offset, isAnnouncement } = req.query;
-    
-    // Create filter object based on query parameters
-    const filters = {};
-    if (role) filters.role = role;
-    if (limit) filters.limit = parseInt(limit);
-    if (offset) filters.offset = parseInt(offset);
-    
-    // Get events from database
-    const events = await Event.getAll(filters);
-    
-    // Filter by announcement status if specified
-    let filteredEvents = events;
-    if (isAnnouncement !== undefined) {
-      const isAnnouncementBool = isAnnouncement === 'true';
-      filteredEvents = events.filter(event => event.is_announcement === isAnnouncementBool);
+    const userId = req.userId; // Extract user ID from token middleware
+
+    // 🔹 Fetch the lecturer role from the database
+    const [user] = await db.query(`SELECT role FROM users WHERE user_id = ?`, [userId]);
+
+    if (!user || !user.role) {
+      return res.status(400).json({ message: "User role not found" });
     }
-    
-    // Format dates and times for response
-    const formattedEvents = filteredEvents.map(event => ({
+
+    const userRole = user.role; // Example: "Lecturer"
+    console.log("Fetching events for role:", userRole);
+
+    // 🔹 Fetch events that are targeted at this user's role
+    const events = await Event.getAll({ role: userRole });
+
+    console.log("Filtered events:", events); // Debugging log
+
+    const formattedEvents = events.map(event => ({
       id: event.event_id,
       name: event.name,
       date: event.date,
@@ -93,21 +92,20 @@ exports.getAllEvents = async (req, res) => {
       venue: event.venue,
       description: event.description,
       isAnnouncement: event.is_announcement,
+      targetAudience: event.targetAudience,
       createdBy: {
         id: event.created_by,
-        name: `${event.first_name} ${event.last_name}`
+        name: `${event.first_name} ${event.last_name}`,
       },
-      targetAudience: event.targetAudience,
-      notifications: event.notifications,
-      createdAt: event.created_at
+      createdAt: event.created_at,
     }));
-    
+
     res.status(200).json(formattedEvents);
   } catch (error) {
     console.error("Error fetching events:", error);
     res.status(500).json({
       message: "Failed to retrieve events/announcements",
-      error: error.message
+      error: error.message,
     });
   }
 };

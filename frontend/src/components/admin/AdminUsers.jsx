@@ -395,8 +395,14 @@ const AdminUsers = () => {
         setShowEditForm(true);
     };
 
-    const handleDelete = () => {
-        console.log('Delete clicked');
+    const handleDelete = (user) => {
+        if (!selectedUser) {
+            alert('Please select a user to edit');
+            return;
+        }
+        if (window.confirm(`Are you sure you want to delete ${selectedUser.firstName} ${selectedUser.lastName}?`)) {
+            deleteUser(selectedUser);
+        }
     };
 
     const handleSave = () => {
@@ -664,7 +670,7 @@ const AdminUsers = () => {
                         <button className="action-button" onClick={handleAdd}>Add</button>
                         <button className="action-button" onClick={handleEdit}>Edit</button>
                         <button className="action-button" onClick={handleDelete}>Delete</button>
-                        <button className="action-button" onClick={handleSave}>Save</button>
+                        {/* <button className="action-button" onClick={handleSave}>Save</button> */}
                     </div>
 
                     {/* User Table */}
