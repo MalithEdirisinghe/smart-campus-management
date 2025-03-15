@@ -1,0 +1,70 @@
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background: #d3d3d3;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+}
+
+.sidebar-nav li {
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    background: #a9a9a9;
+    margin-bottom: 5px;
+    font-weight: bold;
+    transition: background 0.3s, color 0.3s;
+}
+
+.sidebar-nav li:hover {
+    background: #888;
+    color: white;
+}
+
+.sidebar-nav .active {
+    background: #333;
+    color: white;
+}
+
+/* Profile Section */
+.profile-summary {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.profile-image-container img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #666;
+}
+
+.profile-info {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.profile-info .role {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.profile-info .name {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.profile-info .id-display {
+    font-size: 14px;
+    color: #555;
+}

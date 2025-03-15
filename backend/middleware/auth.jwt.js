@@ -32,6 +32,7 @@ const verifyToken = (req, res, next) => {
     }
     
     req.userId = decoded.id;
+    req.userRole = decoded.role; // Include user role in request
     next();
   });
 };

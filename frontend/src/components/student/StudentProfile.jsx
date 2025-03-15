@@ -421,12 +421,10 @@ const StudentProfile = () => {
         <nav className="sidebar-nav">
           <ul>
             <li onClick={() => handleNavigation('/student/classes')}>My Classes</li>
-            <li onClick={() => handleNavigation('/student/schedule')}>My Schedule</li>
-            <li onClick={() => handleNavigation('/student/events')}>Events</li>
+            <li onClick={() => handleNavigation('/student/events')}>Events/Announcements</li>
             <li onClick={() => handleNavigation('/student/assignments')}>Assignments</li>
             <li onClick={() => handleNavigation('/student/resources')}>Resources</li>
             <li onClick={() => handleNavigation('/student/communication')}>Communication</li>
-            <li onClick={() => handleNavigation('/student/announcements')}>Announcements</li>
           </ul>
         </nav>
       </div>

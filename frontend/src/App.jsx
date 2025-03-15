@@ -10,12 +10,14 @@ import AdminUsers from './components/admin/AdminUsers';
 import AdminCom from './components/admin/AdminCom';
 import AdminReport from './components/admin/AdminReport';
 import AdminResources from './components/admin/AdminResources';
-import StudentProfile from './components/student/StudentProfile';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LecturerMyClasses from './components/lecture/LecturerMyClasses';
 import LectureProfile from "./components/lecture/LectureProfile";
 import LectureStdMng from "./components/lecture/LectureStdMng";
 import LectureEvent from "./components/lecture/LectureEvent";
+import LectureAssignment from "./components/lecture/LectureAssignment";
+import StudentProfile from './components/student/StudentProfile';
+import StudentAssignment from './components/student/StudentAssignment';
 import './App.css';
 
 function App() {
@@ -37,6 +39,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['student']}>
                 <StudentProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/assignments"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentAssignment />
               </ProtectedRoute>
             }
           />
@@ -136,6 +146,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['lecturer']}>
                 <LectureEvent />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lecturer/assignments"
+            element={
+              <ProtectedRoute allowedRoles={['lecturer']}>
+                <LectureAssignment />
               </ProtectedRoute>
             }
           />
