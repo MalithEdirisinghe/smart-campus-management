@@ -157,12 +157,12 @@ exports.getLatestAssignmentByModule = async (req, res) => {
 
 exports.submitAssignment = async (req, res) => {
     try {
-        const { module, studentId } = req.body;
+        const { module, studentId, userId } = req.body;
         const fileData = req.file ? req.file.buffer : null;
 
         console.log("🔍 Received Submission Request:", { studentId, module, file: !!fileData });
 
-        if (!studentId || !module || !fileData) {
+        if (!studentId || !module || !fileData || !userId) {
             return res.status(400).json({ message: "❌ Student ID, module, and file are required" });
         }
 
@@ -178,15 +178,19 @@ exports.submitAssignment = async (req, res) => {
         }
 
         const batch = studentRows.batch; // Access batch directly
-        console.log("✅ Fetched Student Batch:", batch);
+
+        const[userRows] = await db.query("SELECT first_name, last_name FROM users WHERE user_id = ?", [userId])
+
+        const first_name = userRows.first_name;
+        const last_name = userRows.last_name;
 
         // Insert assignment into `submit_assignment` table
         const insertQuery = `
-            INSERT INTO submit_assignment (student_user_id, submitted_assignment, module, batch, submitted_at)
-            VALUES (?, ?, ?, ?, NOW())
+            INSERT INTO submit_assignment (student_user_id, first_name, last_name, submitted_assignment, module, batch, submitted_at)
+            VALUES (?, ?, ?, ?, ?, ?, NOW())
         `;
 
-        const result = await db.query(insertQuery, [studentId, fileData, module, batch]);
+        const result = await db.query(insertQuery, [studentId, first_name, last_name, fileData, module, batch]);
 
         // Handle the result based on your DB adapter's return format
         const insertId = result[0]?.insertId || result.insertId;

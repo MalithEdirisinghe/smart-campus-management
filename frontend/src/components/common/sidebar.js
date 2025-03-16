@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // Import useLocation
 import "./Sidebar.css";
 import defaultProfileImage from "../../assets/default-profile.png";
 
 const Sidebar = ({ role }) => {
     const navigate = useNavigate();
+    const location = useLocation(); // ✅ Get current page location
     const [user, setUser] = useState(null);
 
     useEffect(() => {
@@ -78,7 +79,13 @@ const Sidebar = ({ role }) => {
             <nav className="sidebar-nav">
                 <ul>
                     {menuItems[role]?.map((item, index) => (
-                        <li key={index} onClick={() => navigate(item.path)}>{item.name}</li>
+                        <li
+                            key={index}
+                            onClick={() => navigate(item.path)}
+                            className={location.pathname === item.path ? "active" : ""} // ✅ Highlight active menu item
+                        >
+                            {item.name}
+                        </li>
                     ))}
                 </ul>
             </nav>

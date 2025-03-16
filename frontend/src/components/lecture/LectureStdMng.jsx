@@ -6,18 +6,27 @@ import defaultProfileImage from "../../assets/default-profile.png";
 const LectureStdMng = () => {
     const navigate = useNavigate();
     const [students, setStudents] = useState([]);
-    const [selectedModule, setSelectedModule] = useState("Networking");
-    const [selectedBatch, setSelectedBatch] = useState("COM12");
+    const [selectedDepartment, setSelectedDepartment] = useState("");
+    const [selectedBatch, setSelectedBatch] = useState("");
     const [lecturer, setLecturer] = useState(null);
+    const token = localStorage.getItem("token");
+
+    // Define batch options based on department selection
+    const batchOptions = {
+        Computing: ["COM12", "COM13"],
+        Business: ["BUS12", "BUS13"],
+        Engineer: ["ENG12", "ENG13"]
+    };
 
     useEffect(() => {
         fetchProfile();
-        fetchStudents();
-    }, [selectedModule, selectedBatch]);
+        if (selectedBatch) {
+            fetchStudents();
+        }
+    }, [selectedBatch]);
 
     const fetchProfile = async () => {
         try {
-            const token = localStorage.getItem("token");
             if (!token) throw new Error("Authentication token not found");
             const response = await fetch("http://localhost:8080/api/lecturer/profile", {
                 method: "GET",
@@ -36,22 +45,48 @@ const LectureStdMng = () => {
 
     const fetchStudents = async () => {
         try {
+            if (!token) {
+                alert("Authentication token missing. Please log in again.");
+                return;
+            }
+
             const response = await fetch(
-                `http://localhost:8080/api/lecturer/students?module=${selectedModule}&batch=${selectedBatch}`
+                `http://localhost:8080/api/lecturer/students?batch=${selectedBatch}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
             );
+
             if (!response.ok) throw new Error("Failed to fetch students");
-            const data = await response.json();
+
+            let data = await response.json();
+            console.log("Student details:", data);
+
+            if (data && !Array.isArray(data)) {
+                data = [data];
+            }
+
             setStudents(data);
+            console.log("Student array:", data);
         } catch (error) {
             console.error("Error fetching students:", error);
+            setStudents([]);
         }
     };
 
     const getProfileImageSrc = () => {
-        if (lecturer && lecturer.profileImage) {
-            return lecturer.profileImage;
-        }
-        return defaultProfileImage;
+        return lecturer?.profileImage || defaultProfileImage;
+    };
+
+    // ✅ Handle department change and reset batch selection
+    const handleDepartmentChange = (event) => {
+        const department = event.target.value;
+        setSelectedDepartment(department);
+        setSelectedBatch(""); // Reset batch when department changes
     };
 
     return (
@@ -64,7 +99,6 @@ const LectureStdMng = () => {
                             alt="Profile"
                             className="profile-image"
                             onError={(e) => {
-                                console.error("Error loading profile image");
                                 e.target.onerror = null;
                                 e.target.src = defaultProfileImage;
                             }}
@@ -90,25 +124,28 @@ const LectureStdMng = () => {
             <div className="main-content">
                 <h1>Student Management</h1>
                 <div className="filters">
-                    <label>Select Module:</label>
-                    <select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
-                        <option value="Networking">Networking</option>
-                        <option value="Database">Database</option>
-                        <option value="Programming">Programming</option>
+                    <label>Select Department:</label>
+                    <select value={selectedDepartment} onChange={handleDepartmentChange}>
+                        <option value="">Select Department</option>
+                        <option value="Computing">Computing</option>
+                        <option value="Business">Business</option>
+                        <option value="Engineer">Engineer</option>
                     </select>
+
                     <label>Select Batch:</label>
-                    <select value={selectedBatch} onChange={(e) => setSelectedBatch(e.target.value)}>
-                        <option value="COM12">COM12</option>
-                        <option value="COM07">COM07</option>
-                        <option value="COM13">COM13</option>
+                    <select
+                        value={selectedBatch}
+                        onChange={(e) => setSelectedBatch(e.target.value)}
+                        disabled={!selectedDepartment} // Disable batch dropdown until department is selected
+                    >
+                        <option value="">Select Batch</option>
+                        {selectedDepartment &&
+                            batchOptions[selectedDepartment].map((batch) => (
+                                <option key={batch} value={batch}>
+                                    {batch}
+                                </option>
+                            ))}
                     </select>
-                </div>
-                <div className="actions">
-                    <button onClick={fetchStudents}>View</button>
-                    <button>Add</button>
-                    <button>Edit</button>
-                    <button>Delete</button>
-                    <button>Save</button>
                 </div>
                 <table className="students-table">
                     <thead>

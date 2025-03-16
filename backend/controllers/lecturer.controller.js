@@ -212,3 +212,33 @@ exports.getLecturerById = async (req, res) => {
     res.status(500).json({ message: "Failed to retrieve lecturer", error: error.message });
   }
 };
+
+exports.getStudentsByBatch = async (req, res) => {
+  try {
+      const { batch } = req.query;
+      if (!batch) {
+          return res.status(400).json({ message: "Batch parameter is required" });
+      }
+
+      const query = `
+          SELECT 
+              s.student_id AS studentId, 
+              u.first_name AS firstName, 
+              u.last_name AS lastName, 
+              s.batch, 
+              u.contact_number AS contact, 
+              u.email
+          FROM students s
+          JOIN users u ON s.user_id = u.user_id
+          WHERE s.batch = ?`;
+
+      console.log("Executing SQL Query:", query, [batch]); // Debugging log
+
+      const [students] = await db.query(query, [batch]);
+
+      res.status(200).json(students);
+  } catch (error) {
+      console.error("Error fetching students:", error);
+      res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};

@@ -41,4 +41,6 @@ module.exports = function(app) {
     [authJwt.verifyToken, authJwt.isLecturer],
     controller.getAttendance  // <-- define this method in lecturer.controller
   );
+
+  app.get("/api/lecturer/students", [authJwt.verifyToken, authJwt.isLecturer], controller.getStudentsByBatch)
 };

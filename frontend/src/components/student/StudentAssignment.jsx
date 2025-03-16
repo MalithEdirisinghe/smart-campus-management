@@ -60,6 +60,7 @@ const StudentAssignment = () => {
 
             const studentData = await response.json();
             setStudentId(studentData.studentId);  // Set the student ID
+            console.log(studentData);
 
         } catch (error) {
             console.error('Error fetching student data:', error);
@@ -115,6 +116,7 @@ const StudentAssignment = () => {
             formData.append("file", selectedFile);
             formData.append("module", selectedModule);
             formData.append("studentId", studentId);
+            formData.append("userId", userId);
     
             // Log FormData contents (for debugging only)
             for (let pair of formData.entries()) {
