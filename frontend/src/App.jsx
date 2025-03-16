@@ -16,6 +16,8 @@ import LectureProfile from "./components/lecture/LectureProfile";
 import LectureStdMng from "./components/lecture/LectureStdMng";
 import LectureEvent from "./components/lecture/LectureEvent";
 import LectureAssignment from "./components/lecture/LectureAssignment";
+import LectureResource from "./components/lecture/LectureResource";
+import LectureCom from "./components/lecture/LectureCom";
 import StudentProfile from './components/student/StudentProfile';
 import StudentAssignment from './components/student/StudentAssignment';
 import './App.css';
@@ -154,6 +156,22 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['lecturer']}>
                 <LectureAssignment />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lecturer/resources"
+            element={
+              <ProtectedRoute allowedRoles={['lecturer']}>
+                <LectureResource />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lecturer/communication"
+            element={
+              <ProtectedRoute allowedRoles={['lecturer']}>
+                <LectureCom />
               </ProtectedRoute>
             }
           />

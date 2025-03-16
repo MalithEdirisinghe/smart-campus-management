@@ -1,4 +1,5 @@
 const db = require("../models/db");
+const SubmitAssignment = db.submitAssignment;
 
 exports.createAssignment = async (req, res) => {
     try {
@@ -57,6 +58,52 @@ exports.fetchStudentsByBatch = async (req, res) => {
     }
 };
 
+exports.getSubmittedAssignments = async (req, res) => {
+    try {
+        const { batch, module } = req.query;
+
+        if (!batch || !module) {
+            return res.status(400).json({ error: 'Batch and module are required' });
+        }
+
+        const query = `
+            SELECT * FROM submit_assignment 
+            WHERE batch = ? AND module = ?
+        `;
+        
+        const [results] = await db.query(query, [batch, module]);
+        res.status(200).json(results);
+    } catch (error) {
+        console.error('Error fetching submitted assignments:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+exports.downloadSubmittedAssignment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ message: "Assignment ID is required" });
+        }
+
+        const query = `SELECT file_name, submitted_assignment FROM submit_assignment WHERE submitted_id = ?`;
+        const [results] = await db.query(query, [id]);
+
+        if (!results.length) {
+            return res.status(404).json({ message: "File not found" });
+        }
+
+        const assignment = results[0];
+
+        res.setHeader('Content-Disposition', `attachment; filename="${assignment.file_name}"`);
+        res.setHeader('Content-Type', 'application/octet-stream');
+
+        res.send(assignment.submitted_assignment);
+    } catch (error) {
+        console.error("Error downloading assignment:", error);
+        res.status(500).json({ message: "Failed to download file", error: error.message });
+    }
+};
+
 exports.addMarks = async (req, res) => {
     try {
         const { studentId, assignmentId, marks, grade } = req.body;
@@ -110,29 +157,46 @@ exports.getLatestAssignmentByModule = async (req, res) => {
 
 exports.submitAssignment = async (req, res) => {
     try {
-        const { module, userId } = req.body;
+        const { module, studentId } = req.body;
         const fileData = req.file ? req.file.buffer : null;
 
-        // Log values for debugging
-        console.log("Received Request Body:", req.body);
-        console.log("Extracted User ID:", userId);
-        console.log("File Data:", fileData ? "File received" : "No file received");
+        console.log("🔍 Received Submission Request:", { studentId, module, file: !!fileData });
 
-        // Check for undefined values
-        if (!module || !userId || !fileData) {
-            return res.status(400).json({ message: "Module, user ID, and file are required" });
+        if (!studentId || !module || !fileData) {
+            return res.status(400).json({ message: "❌ Student ID, module, and file are required" });
         }
 
+        // Fetch student's batch
+        const [studentRows] = await db.query("SELECT batch FROM students WHERE student_id = ?", [studentId]);
+
+        console.log("🔍 Student Query Result:", studentRows); // Debugging
+
+        // Check if studentRows is an object and has the batch property
+        if (!studentRows.batch) {
+            console.error("❌ No batch found for student:", studentId);
+            return res.status(404).json({ message: "❌ Student batch not found for this student ID." });
+        }
+
+        const batch = studentRows.batch; // Access batch directly
+        console.log("✅ Fetched Student Batch:", batch);
+
+        // Insert assignment into `submit_assignment` table
         const insertQuery = `
-            INSERT INTO submit_assignment (student_user_id, submitted_assignment, module)
-            VALUES (?, ?, ?)
+            INSERT INTO submit_assignment (student_user_id, submitted_assignment, module, batch, submitted_at)
+            VALUES (?, ?, ?, ?, NOW())
         `;
 
-        const result = await db.query(insertQuery, [userId, fileData, module]);
+        const result = await db.query(insertQuery, [studentId, fileData, module, batch]);
 
-        res.status(201).json({ message: "Assignment submitted successfully!", insertId: result.insertId });
+        // Handle the result based on your DB adapter's return format
+        const insertId = result[0]?.insertId || result.insertId;
+
+        console.log("✅ Assignment submitted successfully:", result);
+
+        res.status(201).json({ message: "✅ Assignment submitted successfully!", insertId });
+
     } catch (error) {
-        console.error("Error submitting assignment:", error);
+        console.error("❌ Error submitting assignment:", error);
         res.status(500).json({ message: "Failed to submit assignment", error: error.message });
     }
 };

@@ -1,128 +1,144 @@
-// routes/communication.routes.js
-const { authJwt } = require('../middleware');
-const groupController = require('../controllers/group.controller');
-const messageController = require('../controllers/message.controller');
+const express = require("express");
+const router = express.Router();
+const { authJwt } = require("../middleware");
+const groupController = require("../controllers/group.controller");
+const messageController = require("../controllers/message.controller");
+const fileController = require("../controllers/file.controller");
+const upload = require("../middleware/multer.config");
 
-module.exports = function(app) {
-  app.use((req, res, next) => {
-    res.header(
-      "Access-Control-Allow-Headers",
-      "x-access-token, Origin, Content-Type, Accept"
-    );
-    next();
-  });
-
-  // Group routes
-  // Create a new group (admin only)
-  app.post(
-    "/api/admin/communication/groups",
-    [authJwt.verifyToken, authJwt.isAdmin],
-    groupController.createGroup
+// Middleware to set headers for all requests in this route
+router.use((req, res, next) => {
+  res.header(
+    "Access-Control-Allow-Headers",
+    "x-access-token, Origin, Content-Type, Accept"
   );
+  next();
+});
 
-  // Get all groups
-  app.get(
-    "/api/admin/communication/groups",
-    [authJwt.verifyToken, authJwt.isAdmin],
-    groupController.getGroups
-  );
+// =============================
+// 📌 Group Management (Admin Only)
+// =============================
 
-  // Get a group by ID
-  app.get(
-    "/api/admin/communication/groups/:id",
-    [authJwt.verifyToken, authJwt.isAdmin],
-    groupController.getGroupById
-  );
+router.post(
+  "/admin/communication/groups",
+  [authJwt.verifyToken, authJwt.isAdmin],
+  groupController.createGroup
+);
 
-  // Update a group (admin only)
-  app.put(
-    "/api/admin/communication/groups/:id",
-    [authJwt.verifyToken, authJwt.isAdmin],
-    groupController.updateGroup
-  );
+router.get(
+  "/admin/communication/groups",
+  [authJwt.verifyToken, authJwt.isAdmin],
+  groupController.getGroups
+);
 
-  // Delete a group (admin only)
-  app.delete(
-    "/api/admin/communication/groups/:id",
-    [authJwt.verifyToken, authJwt.isAdmin],
-    groupController.deleteGroup
-  );
+router.get(
+  "/admin/communication/groups/:id",
+  [authJwt.verifyToken, authJwt.isAdmin],
+  groupController.getGroupById
+);
 
-  // Get group members
-  app.get(
-    "/api/admin/communication/groups/:id/members",
-    [authJwt.verifyToken, authJwt.isAdmin],
-    groupController.getGroupMembers
-  );
+router.put(
+  "/admin/communication/groups/:id",
+  [authJwt.verifyToken, authJwt.isAdmin],
+  groupController.updateGroup
+);
 
-  // Add a member to a group (admin only)
-  app.post(
-    "/api/admin/communication/groups/:id/members",
-    [authJwt.verifyToken, authJwt.isAdmin],
-    groupController.addGroupMember
-  );
+router.delete(
+  "/admin/communication/groups/:id",
+  [authJwt.verifyToken, authJwt.isAdmin],
+  groupController.deleteGroup
+);
 
-  // Remove a member from a group (admin only)
-  app.delete(
-    "/api/admin/communication/groups/:id/members/:userId",
-    [authJwt.verifyToken, authJwt.isAdmin],
-    groupController.removeGroupMember
-  );
+router.get(
+  "/admin/communication/groups/:id/members",
+  [authJwt.verifyToken, authJwt.isAdmin],
+  groupController.getGroupMembers
+);
 
-  // Message routes
-  // Send a direct message (all users)
-  app.post(
-    "/api/communication/messages",
-    [authJwt.verifyToken],
-    messageController.sendDirectMessage
-  );
+router.post(
+  "/admin/communication/groups/:id/members",
+  [authJwt.verifyToken, authJwt.isAdmin],
+  groupController.addGroupMember
+);
 
-  // Send a group message (all users)
-  app.post(
-    "/api/communication/groups/:id/messages",
-    [authJwt.verifyToken],
-    messageController.sendGroupMessage
-  );
+router.delete(
+  "/admin/communication/groups/:id/members/:userId",
+  [authJwt.verifyToken, authJwt.isAdmin],
+  groupController.removeGroupMember
+);
 
-  // Get inbox messages (direct messages received)
-  app.get(
-    "/api/communication/messages/inbox",
-    [authJwt.verifyToken],
-    messageController.getInboxMessages
-  );
+// =============================
+// 📌 File Sharing (Lecturers Only)
+// =============================
 
-  // Get sent messages (direct messages sent)
-  app.get(
-    "/api/communication/messages/sent",
-    [authJwt.verifyToken],
-    messageController.getSentMessages
-  );
+router.post(
+  "/share-file",
+  [authJwt.verifyToken, authJwt.isLecturer],
+  upload.single("file"),
+  fileController.shareFile
+);
 
-  // Get group messages
-  app.get(
-    "/api/communication/groups/:id/messages",
-    [authJwt.verifyToken],
-    messageController.getGroupMessages
-  );
+router.get(
+  "/communication/shared-files/:module/:batch",
+  [authJwt.verifyToken],
+  fileController.getSharedFiles
+);
 
-  // Mark direct message as read
-  app.put(
-    "/api/communication/messages/:id/read",
-    [authJwt.verifyToken],
-    messageController.markMessageAsRead
-  );
+// =============================
+// 📌 Direct Messaging (All Users)
+// =============================
 
-  // Mark group message as read
-  app.put(
-    "/api/communication/groups/messages/:id/read",
-    [authJwt.verifyToken],
-    messageController.markGroupMessageAsRead
-  );
+router.post(
+  "/messages",
+  [authJwt.verifyToken,authJwt.isLecturer],
+  messageController.sendDirectMessage
+);
 
-  // Get unread messages count
-  app.get(
-    "/api/communication/messages/unread-count",
-    [authJwt.verifyToken],
-    messageController.getUnreadCount
-  );
-};
+router.get(
+  "/communication/messages/inbox",
+  [authJwt.verifyToken],
+  messageController.getInboxMessages
+);
+
+router.get(
+  "/communication/messages/sent",
+  [authJwt.verifyToken],
+  messageController.getSentMessages
+);
+
+router.put(
+  "/communication/messages/:id/read",
+  [authJwt.verifyToken],
+  messageController.markMessageAsRead
+);
+
+router.get(
+  "/communication/messages/unread-count",
+  [authJwt.verifyToken],
+  messageController.getUnreadCount
+);
+
+// =============================
+// 📌 Group Messaging (All Users)
+// =============================
+
+router.post(
+  "/communication/groups/:id/messages",
+  [authJwt.verifyToken],
+  messageController.sendGroupMessage
+);
+
+router.get(
+  "/communication/groups/:id/messages",
+  [authJwt.verifyToken],
+  messageController.getGroupMessages
+);
+
+router.put(
+  "/communication/groups/messages/:id/read",
+  [authJwt.verifyToken],
+  messageController.markGroupMessageAsRead
+);
+
+// ✅ Export Router
+module.exports = router;

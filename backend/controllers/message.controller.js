@@ -1,42 +1,33 @@
 // controllers/message.controller.js
 const Message = require('../models/message.model');
 
-// Send a direct message
 exports.sendDirectMessage = async (req, res) => {
   try {
     const { receiverId, content } = req.body;
-    
-    // Validate required fields
+
     if (!receiverId || !content) {
-      return res.status(400).json({
-        message: "Receiver ID and message content are required"
-      });
+      return res.status(400).json({ message: "Receiver ID and message content are required" });
     }
-    
-    // Find receiver's user ID based on their role-specific ID (student_id, lecturer_id, etc.)
+
+    // Find receiver's user ID based on their role-specific ID
     const receiverUserId = await Message.findUserByTypeId(receiverId);
-    
+    console.log("Receiver User ID:", receiverUserId); // ✅ Debugging log
+
     if (!receiverUserId) {
-      return res.status(404).json({
-        message: "Receiver not found"
-      });
+      return res.status(404).json({ message: "Receiver not found" });
     }
-    
-    // Send the message
+
+    // Insert message into database
     const messageId = await Message.sendDirectMessage(req.userId, receiverUserId, content);
-    
-    res.status(201).json({
-      message: "Message sent successfully",
-      messageId
-    });
+    console.log("Inserted Message ID:", messageId); // ✅ Debugging log
+
+    res.status(201).json({ message: "Message sent successfully", messageId });
   } catch (error) {
     console.error("Error sending message:", error);
-    res.status(500).json({
-      message: "Failed to send message",
-      error: error.message
-    });
+    res.status(500).json({ message: "Failed to send message", error: error.message });
   }
 };
+
 
 // Send a group message
 exports.sendGroupMessage = async (req, res) => {

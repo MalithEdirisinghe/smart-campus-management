@@ -1,12 +1,12 @@
 const multer = require("multer");
 const path = require("path");
 
-// Configure storage to use memory storage for BLOB implementation
+// ✅ Configure memory storage for handling BLOB storage in the database
 const storage = multer.memoryStorage();
 
-// Allowed file types for assignments
+// ✅ Allowed file types for assignments & resource sharing
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|zip/; // ✅ Supports images, PDFs, DOCX, ZIP files
+  const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|zip/;
   const mimetype = allowedTypes.test(file.mimetype);
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
 
@@ -17,11 +17,12 @@ const fileFilter = (req, file, cb) => {
   cb(new Error("File upload only supports images (jpeg, jpg, png, gif), PDFs, DOCX, and ZIP files"));
 };
 
-// Configure multer
+// ✅ Configure Multer with memory storage for database integration
 const upload = multer({
-  storage: storage, // ✅ Using memory storage for database BLOB implementation
+  storage: storage, 
   limits: { fileSize: 5 * 1024 * 1024 }, // ✅ 5MB limit
   fileFilter: fileFilter
 });
 
+// ✅ Export the middleware
 module.exports = upload;

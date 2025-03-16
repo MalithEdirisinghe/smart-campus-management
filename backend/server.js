@@ -1,96 +1,32 @@
-// const express = require("express");
-// const cors = require("cors");
-// const bodyParser = require("body-parser");
-// const path = require("path");
-// require("dotenv").config();
-
-// const app = express(); 
-
-// // Middleware
-// app.use(cors({
-//   origin: process.env.CLIENT_URL || "http://localhost:3000",
-//   credentials: true
-// }));
-
-// // Parse requests
-// app.use(bodyParser.json());
-// app.use(bodyParser.urlencoded({ extended: true }));
-
-// // Serve static files for uploads
-// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// // Database setup
-// const db = require("./models/db");
-
-// // Check database connection
-// db.testConnection().then(connected => {
-//   if (!connected) {
-//     console.error("Database connection failed. Exiting application.");
-//     process.exit(1);
-//   }
-// });
-
-// // Routes
-// require('./routes/auth.routes')(app);
-// require('./routes/student.routes')(app);
-// require('./routes/admin.routes')(app);
-// require('./routes/lecturer.routes')(app);  // Added lecturer routes
-// require('./routes/event.routes')(app);
-// require('./routes/resource.routes')(app);
-// require('./routes/communication.routes')(app);
-// const attendanceRoutes = require("./routes/attendance.routes");
-// app.use("/api", attendanceRoutes);
-// const assignmentRoutes = require("./routes/assignment.routes");
-// app.use("/api/assignments", assignmentRoutes);
-// // Root route
-// app.get("/", (req, res) => {
-//   res.json({ message: "Welcome to Smart Campus Management System API." });
-// });
-
-// // Error handling middleware
-// app.use((err, req, res, next) => {
-//   const statusCode = err.statusCode || 500;
-//   console.error(err.message, err.stack);
-//   res.status(statusCode).json({
-//     message: err.message,
-//     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-//   });
-// });
-
-// // Set port and start server
-// const PORT = process.env.PORT || 8080;
-// app.listen(PORT, () => {
-//   console.log(`Server is running on port ${PORT}.`);
-// });
-
-// // For testing
-// module.exports = app;
-
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const path = require("path");
 require("dotenv").config();
+const resourceRoutes = require("./routes/resource.routes");
+const communicationRoutes = require("./routes/communication.routes");
+const attendanceRoutes = require("./routes/attendance.routes");
+const assignmentRoutes = require("./routes/assignment.routes");
 
 const app = express();
 
-// Middleware
+// ✅ Middleware
 app.use(cors({
   origin: process.env.CLIENT_URL || "http://localhost:3000",
   credentials: true
 }));
 
-// Parse requests
+// ✅ Parse JSON and URL-encoded requests
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Serve static files for uploads
+// ✅ Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Database setup
+// ✅ Database Setup
 const db = require("./models/db");
 
-// Check database connection
+// ✅ Check Database Connection
 db.testConnection().then(connected => {
   if (!connected) {
     console.error("Database connection failed. Exiting application.");
@@ -98,25 +34,26 @@ db.testConnection().then(connected => {
   }
 });
 
-// Routes
+// ✅ Register Routes
 require('./routes/auth.routes')(app);
 require('./routes/student.routes')(app);
 require('./routes/admin.routes')(app);
-require('./routes/lecturer.routes')(app);  // Added lecturer routes
+require('./routes/lecturer.routes')(app);
 require('./routes/event.routes')(app);
 require('./routes/resource.routes')(app);
-require('./routes/communication.routes')(app);
-const attendanceRoutes = require("./routes/attendance.routes");
-app.use("/api", attendanceRoutes);
-const assignmentRoutes = require("./routes/assignment.routes");
-app.use("/api/assignments", assignmentRoutes);
 
-// Root route
+// ✅ Assign Specific Endpoints
+app.use("/api", attendanceRoutes);
+app.use("/api/assignments", assignmentRoutes);
+app.use("/api/resources", resourceRoutes);
+app.use("/api/communication", communicationRoutes);
+
+// ✅ Root Route
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to Smart Campus Management System API." });
 });
 
-// Error handling middleware
+// ✅ Error Handling Middleware
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   console.error(err.message, err.stack);
@@ -126,11 +63,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Set port and start server
+// ✅ Set Port & Start Server
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
 
-// For testing
+// ✅ For Testing
 module.exports = app;

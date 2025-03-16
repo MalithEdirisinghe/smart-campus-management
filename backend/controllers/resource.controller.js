@@ -103,105 +103,57 @@ exports.getClassrooms = async (req, res) => {
   }
 };
 
-// Get equipment with pagination and availability
 exports.getEquipment = async (req, res) => {
   try {
-    const { type = 'computer', page = 0, date, time, ampm, includeReserved = 'false' } = req.query;
-    
-    // Convert type to database format
-    const equipmentType = mapEquipmentType(type);
-    
-    // Convert page to number
-    const pageNumber = parseInt(page);
-    
+    const { type = "All", page = 0, date, time, ampm, includeReserved = "false" } = req.query;
+
+    console.log(`🔍 Fetching equipment: type=${type}, page=${page}`);
+
+    const pageNumber = parseInt(page) || 0;
+    const pageSize = 4; // Set default page size
+
     let equipmentList = [];
-    let totalPages = 0;
-    
-    if (date && time) {
-      // Format time to 24-hour format for database query
-      const timePart = time.replace(/\./g, ':');
-      const timeFormat = ampm === 'PM' && !timePart.startsWith('12') ? 
-        `${parseInt(timePart.split(':')[0]) + 12}:${timePart.split(':')[1]}:00` :
-        `${timePart}:00`;
-      
-      // Calculate an end time (assuming 1-hour slots)
-      const endTime = calculateEndTime(timeFormat);
-      
-      // Format date for database query (from MM/DD/YYYY to YYYY-MM-DD)
-      const formattedDate = formatDate(date);
-      
-      if (includeReserved === 'true') {
-        // Get ALL equipment of this type (both available and reserved)
-        equipmentList = await Equipment.getByType(equipmentType, pageNumber, 4);
-        
-        // For each equipment, check if it's reserved at the specified time
-        for (let item of equipmentList) {
-          const reservations = await Reservation.getByResource('equipment', item.equipment_id);
-          
-          // Check if there's an active reservation for this time slot
-          const activeReservation = reservations.find(r => 
-            r.status === 'active' && 
-            r.reservation_date === formattedDate &&
-            ((r.start_time <= timeFormat && r.end_time > timeFormat) || 
-             (r.start_time < endTime && r.end_time >= endTime) ||
-             (r.start_time >= timeFormat && r.start_time < endTime))
-          );
-          
-          if (activeReservation) {
-            item.status = 'reserved';
-            item.assignedTo = activeReservation.reserved_by;
-          }
-        }
-      } else {
-        // Get only available equipment (original behavior)
-        equipmentList = await Equipment.getAvailableByType(
-          equipmentType, formattedDate, timeFormat, endTime, pageNumber, 4
-        );
-      }
-      
-      // Get total equipment of this type for pagination
-      const totalEquipment = await Equipment.getCountByType(equipmentType);
-      totalPages = Math.ceil(totalEquipment / 4);
+
+    if (type === "All") {
+      // Fetch all equipment
+      equipmentList = await Equipment.getAll(pageNumber, pageSize);
+      console.log("✅ Retrieved all equipment from database.");
     } else {
-      // Get all equipment by type paginated
-      equipmentList = await Equipment.getByType(equipmentType, pageNumber, 4);
-      
-      // For each equipment, check for active reservations
-      for (let item of equipmentList) {
-        if (item.status === 'reserved') {
-          // Get the current reservation details
-          const reservations = await Reservation.getByResource('equipment', item.equipment_id);
-          const activeReservation = reservations.find(r => r.status === 'active');
-          
-          if (activeReservation) {
-            item.assignedTo = activeReservation.reserved_by;
-          }
-        }
-      }
-      
-      // Get total equipment of this type for pagination
-      const totalEquipment = await Equipment.getCountByType(equipmentType);
-      totalPages = Math.ceil(totalEquipment / 4);
+      // Map frontend types to database types
+      const equipmentType = mapEquipmentType(type);
+      console.log(`🔍 Filtering by type: ${equipmentType}`);
+
+      // Fetch only the selected type
+      equipmentList = await Equipment.getByType(equipmentType, pageNumber, pageSize);
     }
 
-    // Convert to format expected by frontend
-    equipmentList.forEach(item => {
+    console.log("✅ Equipment fetched from DB:", equipmentList.length, "items");
+
+    // Format response
+    equipmentList.forEach((item) => {
       item.id = item.equipment_id;
-      item.available = item.status === 'available';
+      item.available = item.status === "available";
     });
-    
+
+    // Get total count for pagination
+    const totalEquipment = type === "All" 
+      ? await Equipment.getTotalCount() 
+      : await Equipment.getCountByType(mapEquipmentType(type));
+
+    const totalPages = Math.ceil(totalEquipment / pageSize);
+
     res.status(200).json({
       equipment: equipmentList,
       pagination: {
         page: pageNumber,
-        totalPages
-      }
+        totalPages,
+      },
     });
   } catch (error) {
-    console.error("Error fetching equipment:", error);
+    console.error("🚨 Error fetching equipment:", error);
     res.status(500).json({
       message: "Failed to retrieve equipment",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -380,6 +332,94 @@ exports.updateReservation = async (req, res) => {
       });
   }
 };
+exports.getAllEquipment = async (req, res) => {
+  try {
+      const [rows] = await db.promise().query("SELECT id, type, status, reserved_by FROM equipment");
+      res.json(rows);
+  } catch (error) {
+      console.error("Error fetching equipment:", error);
+      res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.releaseEquipment = async (req, res) => {
+  try {
+      const { equipment_id } = req.body;
+      const lecturer_id = req.userId;
+
+      if (!equipment_id) {
+          return res.status(400).json({ message: "Equipment ID is required." });
+      }
+
+      // Check if the equipment is actually reserved by this lecturer
+      const checkQuery = "SELECT * FROM equipment WHERE equipment_id = ? AND reserved_by = ?";
+      const [equipment] = await db.query(checkQuery, [equipment_id, lecturer_id]);
+
+      if (equipment.length === 0) {
+          return res.status(400).json({ message: "Equipment is not reserved by you or does not exist." });
+      }
+
+      // Release the equipment
+      const releaseQuery = "UPDATE equipment SET status = 'available', reserved_by = NULL WHERE equipment_id = ?";
+      await db.query(releaseQuery, [equipment_id]);
+
+      res.status(200).json({ message: "Reservation canceled successfully." });
+  } catch (error) {
+      console.error("Error releasing equipment:", error);
+      res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.reserveEquipment = async (req, res) => {
+  try {
+      const { equipment_id } = req.body;
+      const lecturer_id = req.userId;  // Extract the lecturer's ID from JWT token
+      console.log('ID:', lecturer_id);
+
+      if (!equipment_id) {
+          return res.status(400).json({ message: "Equipment ID is required." });
+      }
+
+      // Check if the equipment is available
+      const checkQuery = "SELECT * FROM equipment WHERE equipment_id = ? AND status = 'available'";
+      const [equipment] = await db.query(checkQuery, [equipment_id]);
+
+      if (equipment.length === 0) {
+          return res.status(400).json({ message: "Equipment is already reserved or does not exist." });
+      }
+
+      // Reserve the equipment
+      const reserveQuery = "UPDATE equipment SET status = 'reserved', reserved_by = ? WHERE equipment_id = ?";
+      await db.query(reserveQuery, [lecturer_id, equipment_id]);
+
+      res.status(200).json({ message: "Equipment reserved successfully." });
+  } catch (error) {
+      console.error("Error reserving equipment:", error);
+      res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// exports.releaseEquipment = async (req, res) => {
+//   try {
+//       const { equipment_id } = req.body;
+
+//       if (!equipment_id) {
+//           return res.status(400).json({ message: "Equipment ID is required." });
+//       }
+
+//       const query = "UPDATE equipment SET status = 'available', reserved_by = NULL WHERE equipment_id = ?";
+//       const [result] = await db.execute(query, [equipment_id]);
+
+//       if (result.affectedRows === 0) {
+//           return res.status(400).json({ message: "Equipment is not reserved or does not exist." });
+//       }
+
+//       res.status(200).json({ message: "Reservation canceled successfully." });
+//   } catch (error) {
+//       console.error("Error releasing equipment:", error);
+//       res.status(500).json({ message: "Server error", error: error.message });
+//   }
+// };
 
 // Helper functions
 function formatDate(dateString) {

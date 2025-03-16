@@ -26,8 +26,6 @@ const Equipment = {
   getAvailableByType: async (type, date, startTime, endTime, page = 0, limit = 4) => {
     try {
       const offset = page * limit;
-      
-      // Query to get equipment that are not reserved during the specified time
       const query = `
         SELECT e.* FROM equipment e
         WHERE e.type = ? AND e.status = 'available'
@@ -46,7 +44,6 @@ const Equipment = {
         ORDER BY e.equipment_id
         LIMIT ? OFFSET ?
       `;
-      
       return await db.query(query, [
         type, date, endTime, startTime, startTime, endTime, startTime, endTime,
         limit, offset
@@ -83,6 +80,17 @@ const Equipment = {
     try {
       const query = 'SELECT COUNT(*) as total FROM equipment WHERE type = ?';
       const result = await db.query(query, [type]);
+      return result[0].total;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // ✅ **NEW FUNCTION: Get total count of all equipment**
+  getTotalCount: async () => {
+    try {
+      const query = 'SELECT COUNT(*) as total FROM equipment';
+      const result = await db.query(query);
       return result[0].total;
     } catch (error) {
       throw error;

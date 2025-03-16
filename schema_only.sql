@@ -42,7 +42,7 @@ DROP TABLE IF EXISTS `assignments`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `assignments` (
   `assignment_id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
+  `file_name` varchar(255) NOT NULL,
   `module` varchar(100) NOT NULL,
   `batch` varchar(50) NOT NULL,
   `release_date` date NOT NULL,
@@ -53,7 +53,7 @@ CREATE TABLE `assignments` (
   PRIMARY KEY (`assignment_id`),
   KEY `created_by` (`created_by`),
   CONSTRAINT `assignments_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `lecturer_users` (`lecturer_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -217,6 +217,7 @@ CREATE TABLE `equipment` (
   `model` varchar(100) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `status` enum('available','reserved','maintenance') DEFAULT 'available',
+  `reserved_by` varchar(55) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`equipment_id`)
@@ -464,7 +465,7 @@ CREATE TABLE `resource_reservations` (
   PRIMARY KEY (`reservation_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `resource_reservations_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -532,6 +533,29 @@ CREATE TABLE `students` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `submit_assignment`
+--
+
+DROP TABLE IF EXISTS `submit_assignment`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `submit_assignment` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_user_id` varchar(50) NOT NULL,
+  `first_name` varchar(255) NOT NULL,
+  `last_name` varchar(255) NOT NULL,
+  `submitted_assignment` mediumblob NOT NULL,
+  `module` varchar(255) NOT NULL,
+  `batch` varchar(50) NOT NULL,
+  `submitted_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `file_name` varchar(255) DEFAULT NULL,
+  `marks` int(3) DEFAULT NULL,
+  `grade` char(2) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `users`
 --
 
@@ -556,7 +580,7 @@ CREATE TABLE `users` (
   `profile_image_type` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -587,4 +611,4 @@ CREATE TABLE `verification_tokens` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-03-15  6:24:23
+-- Dump completed on 2025-03-16 11:22:20

@@ -32,7 +32,6 @@ const Sidebar = ({ role }) => {
 
             if (!response.ok) throw new Error("Failed to fetch profile");
             const data = await response.json();
-            console.log('response:', data.studentId);
             setUser(data);
         } catch (error) {
             console.error("Error fetching profile:", error);

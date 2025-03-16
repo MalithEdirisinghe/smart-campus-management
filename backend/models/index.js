@@ -1,9 +1,7 @@
-// models/index.js
 const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'development';
 const config = require(path.join(__dirname, '/../config/db.config.js'));
 const db = {};
 
@@ -25,6 +23,7 @@ fs.readdirSync(__dirname)
     const modelImport = require(path.join(__dirname, file));
     if (typeof modelImport === 'function') {
       const model = modelImport(sequelize, Sequelize.DataTypes);
+      console.log(`Imported model: ${model.name}`); // Debugging line
       db[model.name] = model;
     }
   });

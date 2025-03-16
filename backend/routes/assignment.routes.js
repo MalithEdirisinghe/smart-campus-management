@@ -10,5 +10,7 @@ router.get("/students", assignmentController.fetchStudentsByBatch);
 router.post("/marks/add", assignmentController.addMarks);
 router.get("/latest", assignmentController.getLatestAssignmentByModule);
 router.post("/submit", upload.single('file'), assignmentController.submitAssignment);
+router.get("/submitted", assignmentController.getSubmittedAssignments);
+router.get("/download/:id", assignmentController.downloadSubmittedAssignment);
 
 module.exports = router;

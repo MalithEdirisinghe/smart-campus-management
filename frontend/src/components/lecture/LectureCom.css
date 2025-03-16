@@ -1,0 +1,96 @@
+   .lecture-com-container {
+    display: flex;
+    height: 100vh;
+    background-color: #f8f9fa;
+  }
+  
+  .lecture-content {
+    flex: 1;
+    padding: 20px;
+  }
+  
+  .page-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .section {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  h3 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
+  }
+  
+  .group-controls, .direct-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  label {
+    font-weight: bold;
+    margin-top: 5px;
+    align-self: first baseline
+  }
+  
+  input, select, textarea {
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+  }
+  
+  textarea {
+    min-height: 80px;
+    resize: none;
+  }
+  
+  button {
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .share-button {
+    background-color: #9c9ea0;
+    color: white;
+  }
+  
+  .share-button:hover {
+    background-color: #3e3e3f;
+  }
+  
+  .send-button {
+    background-color: #9c9ea0;
+  }
+  
+  .send-button:hover {
+    background-color: #3e3e3f;
+  }
+  
+  .discard-button {
+    background-color: #e40c22;
+    color: white;
+  }
+  
+  .discard-button:hover {
+    background-color: #66050e;
+  }
+  
+  .message-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  

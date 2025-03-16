@@ -16,7 +16,7 @@ const LectureAssignment = () => {
     const [selectedBatch, setSelectedBatch] = useState("");
     const [selectedModules, setSelectedModules] = useState([]);
     const [assignments, setAssignments] = useState([]);
-    const [students, setStudents] = useState([]);
+    const [students, setStudents] = useState();
     const [assignmentData, setAssignmentData] = useState({
         name: "",
         module: "",
@@ -29,6 +29,12 @@ const LectureAssignment = () => {
     const [selectedStudentId, setSelectedStudentId] = useState(null);
     const [selectedAssignmentId, setSelectedAssignmentId] = useState(null);
 
+    // New state variables for Mark Assignments section
+    const [markSelectedDepartment, setMarkSelectedDepartment] = useState("");
+    const [markSelectedBatch, setMarkSelectedBatch] = useState("");
+    const [markSelectedModule, setMarkSelectedModule] = useState("");
+    const [markSelectedModules, setMarkSelectedModules] = useState([]);
+
     useEffect(() => {
         fetchProfile();
         fetchAssignments();
@@ -36,9 +42,16 @@ const LectureAssignment = () => {
 
     useEffect(() => {
         if (selectedBatch) {
-            fetchStudentsByBatch(selectedBatch);
+            // fetchStudentsByBatch(selectedBatch);
+            fetchSubmittedAssignments();
         }
     }, [selectedBatch]);
+
+    useEffect(() => {
+        if (markSelectedBatch && markSelectedModule) {
+            fetchSubmittedAssignments(markSelectedBatch, markSelectedModule);
+        }
+    }, [markSelectedBatch, markSelectedModule]);
 
     // Fetch Lecturer Profile
     const fetchProfile = async () => {
@@ -74,20 +87,20 @@ const LectureAssignment = () => {
         // }
     };
 
-    // Fetch Students by Batch
-    const fetchStudentsByBatch = async (batch) => {
+    const fetchSubmittedAssignments = async (batch, module) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/assignments/students?batch=${batch}`);
-            if (!response.ok) throw new Error("Failed to fetch students");
+            const response = await fetch(`http://localhost:8080/api/assignments/submitted?batch=${batch}&module=${module}`);
+            if (!response.ok) throw new Error("Failed to fetch submitted assignments");
+
             const data = await response.json();
+            console.log("🚀 Submitted Assignments (Raw):", data); // Log raw data
 
-            // Ensure data is an array
-            const studentsData = Array.isArray(data) ? data : [data];
-            console.log("Student Details:", studentsData);
+            // Assuming data is an array of assignment objects
+            setStudents(data);
 
-            setStudents(studentsData);
+            console.log('student data:', students);
         } catch (error) {
-            console.error("Error fetching students:", error);
+            console.error("Error fetching submitted assignments:", error);
         }
     };
 
@@ -142,6 +155,14 @@ const LectureAssignment = () => {
             setAssignmentData(prevData => ({ ...prevData, batch: selectedBatch })); // Update batch in assignmentData
         }
     }, [selectedDepartment, selectedBatch]);
+
+    // Update mark modules based on selected mark department and batch
+    useEffect(() => {
+        if (markSelectedDepartment && markSelectedBatch) {
+            const modules = departments[markSelectedDepartment].modules;
+            setMarkSelectedModules(modules);
+        }
+    }, [markSelectedDepartment, markSelectedBatch]);
 
     // Handle Save Marks
     const handleSaveMarks = async (marksData) => {
@@ -258,16 +279,22 @@ const LectureAssignment = () => {
 
                 <h2>Mark Assignments</h2>
                 <div className="marking-section">
-                    <select value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value)}>
+                    <select value={markSelectedDepartment} onChange={(e) => setMarkSelectedDepartment(e.target.value)}>
                         <option value="">Select Department</option>
                         {Object.keys(departments).map((dept, index) => (
                             <option key={index} value={dept}>{dept}</option>
                         ))}
                     </select>
-                    <select value={selectedBatch} onChange={(e) => setSelectedBatch(e.target.value)}>
+                    <select value={markSelectedBatch} onChange={(e) => setMarkSelectedBatch(e.target.value)}>
                         <option value="">Select Batch</option>
-                        {selectedDepartment && departments[selectedDepartment].batches.map((batch, index) => (
+                        {markSelectedDepartment && departments[markSelectedDepartment].batches.map((batch, index) => (
                             <option key={index} value={batch}>{batch}</option>
+                        ))}
+                    </select>
+                    <select value={markSelectedModule} onChange={(e) => setMarkSelectedModule(e.target.value)}>
+                        <option value="">Select Module</option>
+                        {markSelectedModules.map((mod, index) => (
+                            <option key={index} value={mod}>{mod}</option>
                         ))}
                     </select>
                     <button onClick={() => openModal(null, null)}>Add</button>
@@ -282,30 +309,43 @@ const LectureAssignment = () => {
                             <th>Student ID</th>
                             <th>First Name</th>
                             <th>Last Name</th>
-                            <th>File (Click to view)</th>
+                            <th>File (Click to Download)</th>
                             <th>Marks %</th>
                             <th>Grade</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {students.map((student, index) => (
-                            <tr key={index}>
-                                <td>{student.student_id}</td>
-                                <td>{student.first_name}</td>
-                                <td>{student.last_name}</td>
-                                <td><a href={student.filePath} target="_blank" rel="noopener noreferrer">{student.fileName}</a></td>
-                                <td>{student.marks || "-"}</td>
-                                <td>{student.grade || "-"}</td>
-                                <td>
-                                    <button onClick={() => openModal(student.studentId, student.assignmentId)}>Add Marks</button>
-                                </td>
+                        {Array.isArray(students) && students.length > 0 ? (
+                            students.map((student, index) => (
+                                <tr key={index}>
+                                    <td>{student.batch}</td>
+                                    <td>{student.first_name || "-"}</td>
+                                    <td>{student.last_name || "-"}</td>
+                                    <td>
+                                        <a
+                                            href={`http://localhost:8080/api/assignments/download/${student.id}`}
+                                            download={student.file_name}
+                                            className="assignment-download-link"
+                                        >
+                                            {student.file_name || "No File"}
+                                        </a>
+                                    </td>
+                                    <td>{student.marks || "-"}</td>
+                                    <td>{student.grade || "-"}</td>
+                                    <td>
+                                        <button onClick={() => openModal(student.student_user_id, student.id)}>Add Marks</button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="7">No submitted assignments available</td>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </table>
             </div>
-
             <AddMarksModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
