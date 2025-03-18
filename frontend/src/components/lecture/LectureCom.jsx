@@ -3,7 +3,7 @@ import Sidebar from "../common/sidebar";
 import "./LectureCom.css";
 
 const LectureCom = () => {
-  const [lecturerId, setLecturerId] = useState(null); // ✅ Fix: Define lecturerId
+  const [lecturerId, setLecturerId] = useState(null);
   const [selectedModule, setSelectedModule] = useState("Networking");
   const [selectedBatch, setSelectedBatch] = useState("COM12");
   const [selectedFile, setSelectedFile] = useState(null);
@@ -11,56 +11,65 @@ const LectureCom = () => {
   const [selectedUser, setSelectedUser] = useState("Lecturer");
   const [userId, setUserId] = useState("");
   const [message, setMessage] = useState("");
-  const token = localStorage.getItem("token"); 
+  const token = localStorage.getItem("token");
 
-  // ✅ Fetch lecturer ID from localStorage or API
+  // Batch and module mapping
+  const batchModules = {
+    COM12: ["Networking", "Programming"],
+    COM13: ["Networking", "Programming"],
+    BUS12: ["Finance", "Marketing"],
+    BUS13: ["Finance", "Marketing"],
+    ENG12: ["Mechanics", "Electronics"],
+    ENG13: ["Mechanics", "Electronics"],
+  };
+
+  // Fetch lecturer ID from localStorage or API
   useEffect(() => {
     let storedLecturerId = localStorage.getItem("lecturerId");
-    console.log("Stored LID:", storedLecturerId); // Debugging log
+    console.log("Stored LID:", storedLecturerId);
 
     const token = localStorage.getItem("token");
     if (!token) {
-        console.error("Authentication token not found");
-        return;
+      console.error("Authentication token not found");
+      return;
     }
 
-    // ✅ Fix: Check for "null" string or missing key
     if (!storedLecturerId || storedLecturerId === "null" || storedLecturerId === "undefined") {
-        console.log("Fetching Lecturer ID from API...");
+      console.log("Fetching Lecturer ID from API...");
 
-        fetch("http://localhost:8080/api/lecturer/profile", {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            }
+      fetch("http://localhost:8080/api/lecturer/profile", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log("API Response:", data); // ✅ Log API response
+        .then((data) => {
+          console.log("API Response:", data);
 
-            if (data.lecturerId) {  // ✅ Ensure correct key
-                localStorage.setItem("lecturerId", data.lecturerId);
-                setLecturerId(data.lecturerId);
-                console.log("Lecturer ID fetched and set:", data.lecturerId);
-            } else {
-                console.error("Lecturer ID not found in API response:", data);
-            }
+          if (data.lecturerId) {
+            localStorage.setItem("lecturerId", data.lecturerId);
+            setLecturerId(data.lecturerId);
+            console.log("Lecturer ID fetched and set:", data.lecturerId);
+          } else {
+            console.error("Lecturer ID not found in API response:", data);
+          }
         })
-        .catch(error => console.error("Error fetching lecturer ID:", error));
+        .catch((error) => console.error("Error fetching lecturer ID:", error));
     } else {
-        setLecturerId(storedLecturerId);
-        console.log("Lecturer ID retrieved from storage:", storedLecturerId);
+      setLecturerId(storedLecturerId);
+      console.log("Lecturer ID retrieved from storage:", storedLecturerId);
     }
-}, []);
+  }, []);
 
   const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0] || null); // ✅ Fix: Store file object instead of name
+    setSelectedFile(event.target.files[0] || null);
   };
 
   const handleShare = async (event) => {
@@ -86,9 +95,9 @@ const LectureCom = () => {
       const response = await fetch("http://localhost:8080/api/communication/share-file", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: formData
+        body: formData,
       });
 
       if (response.status === 403) {
@@ -110,44 +119,44 @@ const LectureCom = () => {
 
   const handleSendMessage = async () => {
     if (!lecturerId) {
-        alert("Lecturer ID is missing. Please log in again.");
-        return;
+      alert("Lecturer ID is missing. Please log in again.");
+      return;
     }
 
-    const token = localStorage.getItem("token"); // ✅ Ensure token is retrieved
+    const token = localStorage.getItem("token");
     if (!token) {
-        alert("Authentication token missing. Please log in again.");
-        return;
+      alert("Authentication token missing. Please log in again.");
+      return;
     }
 
     const messageData = {
-        sender_id: lecturerId,  // ✅ Ensure correct field names
-        receiverId: userId,      // ✅ Matches backend structure
-        content: message         // ✅ Ensure 'content' field is included
+      sender_id: lecturerId,
+      receiverId: userId,
+      content: message,
     };
 
-    console.log("Details being sent:", messageData); // Debugging log
+    console.log("Details being sent:", messageData);
 
     try {
-        const response = await fetch("http://localhost:8080/api/communication/messages", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json" 
-            },
-            body: JSON.stringify(messageData) // ✅ Fix: Convert to JSON
-        });
+      const response = await fetch("http://localhost:8080/api/communication/messages", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(messageData),
+      });
 
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-        }
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
 
-        const result = await response.json();
-        alert(result.message);
+      const result = await response.json();
+      alert(result.message);
     } catch (error) {
-        console.error("Messaging error:", error);
+      console.error("Messaging error:", error);
     }
-};
+  };
 
   return (
     <div className="lecture-com-container">
@@ -159,17 +168,27 @@ const LectureCom = () => {
           <h3>Groups</h3>
           <div className="group-controls">
             <label>Batch:</label>
-            <select value={selectedBatch} onChange={(e) => setSelectedBatch(e.target.value)}>
-              <option value="COM12">COM12</option>
-              <option value="COM13">COM13</option>
-              <option value="COM14">COM14</option>
+            <select
+              value={selectedBatch}
+              onChange={(e) => {
+                setSelectedBatch(e.target.value);
+                setSelectedModule(batchModules[e.target.value][0]); // Update module based on batch
+              }}
+            >
+              {Object.keys(batchModules).map((batch) => (
+                <option key={batch} value={batch}>
+                  {batch}
+                </option>
+              ))}
             </select>
 
             <label>Module:</label>
             <select value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
-              <option value="Networking">Networking</option>
-              <option value="Programming">Programming</option>
-              <option value="Database">Database</option>
+              {batchModules[selectedBatch].map((module) => (
+                <option key={module} value={module}>
+                  {module}
+                </option>
+              ))}
             </select>
 
             <label>Select File:</label>
@@ -178,7 +197,9 @@ const LectureCom = () => {
             <label>Add a Note:</label>
             <input type="text" value={note} onChange={(e) => setNote(e.target.value)} />
 
-            <button className="share-button" onClick={handleShare}>Share</button>
+            <button className="share-button" onClick={handleShare}>
+              Share
+            </button>
           </div>
         </div>
 
@@ -192,7 +213,12 @@ const LectureCom = () => {
           </select>
 
           <label>User ID:</label>
-          <input type="text" placeholder="Search" value={userId} onChange={(e) => setUserId(e.target.value)} />
+          <input
+            type="text"
+            placeholder="Search"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+          />
 
           <textarea
             placeholder="Type your message..."
@@ -201,8 +227,12 @@ const LectureCom = () => {
           />
 
           <div className="message-buttons">
-            <button className="discard-button" onClick={() => setMessage("")}>Discard</button>
-            <button className="send-button" onClick={handleSendMessage}>Send</button>
+            <button className="discard-button" onClick={() => setMessage("")}>
+              Discard
+            </button>
+            <button className="send-button" onClick={handleSendMessage}>
+              Send
+            </button>
           </div>
         </div>
       </div>

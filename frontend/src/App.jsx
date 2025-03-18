@@ -20,6 +20,10 @@ import LectureResource from "./components/lecture/LectureResource";
 import LectureCom from "./components/lecture/LectureCom";
 import StudentProfile from './components/student/StudentProfile';
 import StudentAssignment from './components/student/StudentAssignment';
+import StudentClass from './components/student/StudentClass';
+import StudentResource from './components/student/StudentResource';
+import StudentEvent from './components/student/StudentEvent';
+import StudentCom from './components/student/StudentCom';
 import './App.css';
 
 function App() {
@@ -52,13 +56,45 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/student/class"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentClass />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/resources"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentResource />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/events"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentEvent />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/communication"
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentCom />
+              </ProtectedRoute>
+            }
+          />
 
-          <Route path="/student/classes" element={<Navigate to="/student/profile" />} />
+          <Route path="/student/classes" element={<Navigate to="/student/class" />} />
           <Route path="/student/schedule" element={<Navigate to="/student/profile" />} />
           <Route path="/student/events" element={<Navigate to="/student/profile" />} />
           <Route path="/student/assignments" element={<Navigate to="/student/profile" />} />
-          <Route path="/student/resources" element={<Navigate to="/student/profile" />} />
-          <Route path="/student/communication" element={<Navigate to="/student/profile" />} />
+          <Route path="/student/resources" element={<Navigate to="/student/resources" />} />
+          <Route path="/student/communication" element={<Navigate to="/student/communication" />} />
           <Route path="/student/announcements" element={<Navigate to="/student/profile" />} />
 
           {/* Protected Admin routes */}

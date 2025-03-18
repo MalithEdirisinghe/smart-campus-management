@@ -242,3 +242,73 @@ exports.getStudentsByBatch = async (req, res) => {
       res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+// Approve student registration request
+exports.approveStudentRegistration = async (req, res) => {
+  const { requestId, lecturerId, lecturerRole } = req.body;
+
+  try {
+      // Fetch request details
+      const requestQuery = `SELECT student_id, module_id FROM student_requests WHERE request_id = ?`;
+      const [requestResult] = await db.query(requestQuery, [requestId]);
+
+      if (!requestResult.length) {
+          return res.status(404).json({ error: "Request not found" });
+      }
+
+      const { student_id, module_id } = requestResult[0];
+
+      // Insert student into student_classes
+      const insertClassQuery = `INSERT INTO student_classes (student_id, module_id) VALUES (?, ?)`;
+      await db.query(insertClassQuery, [student_id, module_id]);
+
+      // Update request status
+      const updateRequestQuery = `UPDATE student_requests SET status = 'approved' WHERE request_id = ?`;
+      await db.query(updateRequestQuery, [requestId]);
+
+      // Send message to student
+      const messageText = `Your registration request for module ${module_id} has been approved by the lecturer.`;
+      const insertMessageQuery = `
+          INSERT INTO messages (sender_id, sender_role, receiver_id, receiver_role, message, is_read) 
+          VALUES (?, ?, ?, 'student', ?, 0)`;
+      await db.query(insertMessageQuery, [lecturerId, lecturerRole, student_id, messageText]);
+
+      res.json({ success: true, message: "Student registered successfully!" });
+  } catch (error) {
+      res.status(500).json({ error: "Failed to approve registration" });
+  }
+};
+exports.approveStudentRegistration = async (req, res) => {
+  const { requestId, lecturerId, lecturerRole } = req.body;
+
+  try {
+      // Fetch request details
+      const requestQuery = `SELECT student_id, module_id FROM student_requests WHERE request_id = ?`;
+      const [requestResult] = await db.query(requestQuery, [requestId]);
+
+      if (!requestResult.length) {
+          return res.status(404).json({ error: "Request not found" });
+      }
+
+      const { student_id, module_id } = requestResult[0];
+
+      // Insert student into student_classes
+      const insertClassQuery = `INSERT INTO student_classes (student_id, module_id) VALUES (?, ?)`;
+      await db.query(insertClassQuery, [student_id, module_id]);
+
+      // Update request status
+      const updateRequestQuery = `UPDATE student_requests SET status = 'approved' WHERE request_id = ?`;
+      await db.query(updateRequestQuery, [requestId]);
+
+      // Send message to student
+      const messageText = `Your registration request for module ${module_id} has been approved by the lecturer.`;
+      const insertMessageQuery = `
+          INSERT INTO messages (sender_id, sender_role, receiver_id, receiver_role, message, is_read) 
+          VALUES (?, ?, ?, 'student', ?, 0)`;
+      await db.query(insertMessageQuery, [lecturerId, lecturerRole, student_id, messageText]);
+
+      res.json({ success: true, message: "Student registered successfully!" });
+  } catch (error) {
+      res.status(500).json({ error: "Failed to approve registration" });
+  }
+};

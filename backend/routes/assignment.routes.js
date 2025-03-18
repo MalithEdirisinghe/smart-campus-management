@@ -12,5 +12,6 @@ router.get("/latest", assignmentController.getLatestAssignmentByModule);
 router.post("/submit", upload.single('file'), assignmentController.submitAssignment);
 router.get("/submitted", assignmentController.getSubmittedAssignments);
 router.get("/download/:id", assignmentController.downloadSubmittedAssignment);
+router.post("/add", assignmentController.addMarks);
 
 module.exports = router;

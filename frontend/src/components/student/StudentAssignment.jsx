@@ -11,7 +11,9 @@ const StudentAssignment = () => {
     const [selectedModule, setSelectedModule] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
     const [userId, setUserId] = useState(null);
-    const [studentId, setStudentId] = useState(null);  // Store the student ID
+    const [studentId, setStudentId] = useState(null);
+    const [batch, setBatch] = useState(""); // Store student's batch
+    const [moduleOptions, setModuleOptions] = useState([]); // Store module options dynamically
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -27,7 +29,7 @@ const StudentAssignment = () => {
 
     useEffect(() => {
         if (userId) {
-            fetchStudentId(userId);
+            fetchStudentData(userId);
         }
     }, [userId]);
 
@@ -37,8 +39,8 @@ const StudentAssignment = () => {
         }
     }, [selectedModule]);
 
-    // Fetch Student ID (S001) from backend using userId
-    const fetchStudentId = async (userId) => {
+    // Fetch Student ID and Batch from backend using userId
+    const fetchStudentData = async (userId) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -59,8 +61,9 @@ const StudentAssignment = () => {
             }
 
             const studentData = await response.json();
-            setStudentId(studentData.studentId);  // Set the student ID
-            console.log(studentData);
+            setStudentId(studentData.studentId);
+            setBatch(studentData.batch); // Set student's batch
+            updateModuleOptions(studentData.batch); // Update module options based on batch
 
         } catch (error) {
             console.error('Error fetching student data:', error);
@@ -73,6 +76,19 @@ const StudentAssignment = () => {
                 navigate('/admin/login');
             }
         }
+    };
+
+    // Function to update module options based on batch
+    const updateModuleOptions = (batch) => {
+        let options = [];
+        if (["COM12", "COM13"].includes(batch)) {
+            options = ["Networking", "Programming"];
+        } else if (["BUS12", "BUS13"].includes(batch)) {
+            options = ["Marketing", "Finance"];
+        } else if (["ENG12", "ENG13"].includes(batch)) {
+            options = ["Mechanics", "Electronics"];
+        }
+        setModuleOptions(options);
     };
 
     // Fetch latest assignment file for selected module
@@ -118,11 +134,6 @@ const StudentAssignment = () => {
             formData.append("studentId", studentId);
             formData.append("userId", userId);
     
-            // Log FormData contents (for debugging only)
-            for (let pair of formData.entries()) {
-                console.log(`FormData contains: ${pair[0]}: ${pair[1]}`);
-            }
-    
             const response = await fetch("http://localhost:8080/api/assignments/submit", {
                 method: "POST",
                 body: formData,
@@ -158,11 +169,12 @@ const StudentAssignment = () => {
                             className="module-select"
                             value={selectedModule}
                             onChange={(e) => setSelectedModule(e.target.value)}
+                            disabled={!moduleOptions.length} // Disable if no modules available
                         >
                             <option value="">Select Module</option>
-                            <option value="Networking">Networking</option>
-                            <option value="Programming">Programming</option>
-                            <option value="Prototyping">Prototyping</option>
+                            {moduleOptions.map((module, index) => (
+                                <option key={index} value={module}>{module}</option>
+                            ))}
                         </select>
 
                         {assignment ? (

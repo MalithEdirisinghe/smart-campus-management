@@ -6,8 +6,8 @@ const AddMarksModal = ({ isOpen, onClose, onSave, studentId, assignmentId }) => 
     const [grade, setGrade] = useState("");
 
     const handleSave = () => {
-        onSave({ studentId, assignmentId, marks, grade });
-        onClose();
+        onSave(marks, grade, assignmentId);
+        onClose(); // Close modal after saving
     };
 
     if (!isOpen) return null;
@@ -16,25 +16,23 @@ const AddMarksModal = ({ isOpen, onClose, onSave, studentId, assignmentId }) => 
         <div className="modal-overlay">
             <div className="modal-content">
                 <h2>Add Marks</h2>
-                <div className="modal-form">
-                    <label>Marks (%):</label>
-                    <input
-                        type="number"
-                        value={marks}
-                        onChange={(e) => setMarks(e.target.value)}
-                        min="0"
-                        max="100"
-                    />
-                    <label>Grade:</label>
-                    <input
-                        type="text"
-                        value={grade}
-                        onChange={(e) => setGrade(e.target.value)}
-                    />
-                </div>
+                <label>Marks:</label>
+                <input
+                    type="number"
+                    value={marks}
+                    onChange={(e) => setMarks(e.target.value)}
+                    placeholder="Enter marks"
+                />
+                <label>Grade:</label>
+                <input
+                    type="text"
+                    value={grade}
+                    onChange={(e) => setGrade(e.target.value)}
+                    placeholder="Enter grade"
+                />
                 <div className="modal-buttons">
-                    <button onClick={onClose}>Cancel</button>
                     <button onClick={handleSave}>Save</button>
+                    <button onClick={onClose}>Cancel</button>
                 </div>
             </div>
         </div>

@@ -15,7 +15,7 @@ const LectureAssignment = () => {
     const [selectedDepartment, setSelectedDepartment] = useState("");
     const [selectedBatch, setSelectedBatch] = useState("");
     const [selectedModules, setSelectedModules] = useState([]);
-    const [assignments, setAssignments] = useState([]);
+    // const [assignments, setAssignments] = useState([]);
     const [students, setStudents] = useState();
     const [assignmentData, setAssignmentData] = useState({
         name: "",
@@ -95,12 +95,18 @@ const LectureAssignment = () => {
             const data = await response.json();
             console.log("🚀 Submitted Assignments (Raw):", data); // Log raw data
 
-            // Assuming data is an array of assignment objects
-            setStudents(data);
+            if (Array.isArray(data)) {
+                setStudents(data); // If data is already an array, set it directly
+            } else if (typeof data === "object" && data !== null) {
+                setStudents([data]); // Convert single object to array
+            } else {
+                console.error("❌ Unexpected API response format:", data);
+                setStudents([]); // Avoid setting undefined
+            }
 
-            console.log('student data:', students);
         } catch (error) {
             console.error("Error fetching submitted assignments:", error);
+            setStudents([]); // Ensure `students` is always an array
         }
     };
 
@@ -165,10 +171,25 @@ const LectureAssignment = () => {
     }, [markSelectedDepartment, markSelectedBatch]);
 
     // Handle Save Marks
-    const handleSaveMarks = async (marksData) => {
+    const handleSaveMarks = async (marks, grade, assignmentId) => {
         try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("Authentication token not found");
+
+            // Validate that 'id' is passed correctly
+            if (!assignmentId || marks === undefined || grade === undefined) {
+                console.error("❌ Error: Missing required fields", { assignmentId, marks, grade });
+                alert("Error: Missing required fields.");
+                return;
+            }
+
+            const requestBody = {
+                id: assignmentId,  // Pass the 'id' from 'submit_assignment' table
+                marks: Number(marks),
+                grade: grade
+            };
+
+            console.log("📤 Sending Marks Data:", requestBody);
 
             const response = await fetch("http://localhost:8080/api/marks/add", {
                 method: "POST",
@@ -176,18 +197,20 @@ const LectureAssignment = () => {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify(marksData),
+                body: JSON.stringify(requestBody),
             });
 
             const data = await response.json();
-            if (response.ok) {
-                alert("Marks added successfully!");
-                fetchAssignments();
-            } else {
-                alert("Failed to add marks: " + data.message);
+            if (!response.ok) {
+                throw new Error(data.message || "Failed to add marks");
             }
+
+            alert("Marks added successfully!");
+            fetchSubmittedAssignments(markSelectedBatch, markSelectedModule);
+
         } catch (error) {
-            console.error("Error adding marks:", error);
+            console.error("❌ Error adding marks:", error);
+            alert(error.message);
         }
     };
 
@@ -319,7 +342,7 @@ const LectureAssignment = () => {
                         {Array.isArray(students) && students.length > 0 ? (
                             students.map((student, index) => (
                                 <tr key={index}>
-                                    <td>{student.batch}</td>
+                                    <td>{student.student_user_id}</td>
                                     <td>{student.first_name || "-"}</td>
                                     <td>{student.last_name || "-"}</td>
                                     <td>
@@ -334,7 +357,9 @@ const LectureAssignment = () => {
                                     <td>{student.marks || "-"}</td>
                                     <td>{student.grade || "-"}</td>
                                     <td>
-                                        <button onClick={() => openModal(student.student_user_id, student.id)}>Add Marks</button>
+                                        <button onClick={() => openModal(student.student_user_id, student.id)}>
+                                            Add Marks
+                                        </button>
                                     </td>
                                 </tr>
                             ))

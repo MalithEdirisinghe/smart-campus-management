@@ -79,7 +79,7 @@ router.post(
 );
 
 router.get(
-  "/communication/shared-files/:module/:batch",
+  "/files/:module",
   [authJwt.verifyToken],
   fileController.getSharedFiles
 );

@@ -106,16 +106,38 @@ exports.downloadSubmittedAssignment = async (req, res) => {
 
 exports.addMarks = async (req, res) => {
     try {
-        const { studentId, assignmentId, marks, grade } = req.body;
-        const query = `
-            INSERT INTO results (student_id, assignment_id, marks, grade)
-            VALUES (?, ?, ?, ?)
+        const { id, marks, grade } = req.body;  // Ensure 'id' is the primary key
+
+        // Validate input parameters
+        if (!id || marks === undefined || grade === undefined) {
+            return res.status(400).json({ message: "Missing required fields" });
+        }
+
+        console.log("📤 Updating Marks Data:", { id, marks, grade });
+
+        // Correct SQL Query (Updating by 'id' instead of 'student_id')
+        const sql = `
+            UPDATE submit_assignment
+            SET marks = ?, grade = ?
+            WHERE id = ?;
         `;
-        const [result] = await db.query(query, [studentId, assignmentId, marks, grade]);
-        res.status(201).json({ message: "Marks added successfully!", result });
+
+        const values = [Number(marks), grade, id]; // Ensure 'marks' is a number
+        console.log("Results:", values);
+
+        // Execute query
+        const result = await db.query(sql, values);
+        console.log("Query Result:", result); // Log the result to inspect its structure
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "No record updated. Check ID." });
+        }
+
+        res.status(200).json({ message: "Marks updated successfully", result });
+
     } catch (error) {
-        console.error("Error adding marks:", error);
-        res.status(500).json({ message: "Failed to add marks", error: error.message });
+        console.error("❌ Error updating marks:", error);
+        res.status(500).json({ message: "Internal server error", error });
     }
 };
 

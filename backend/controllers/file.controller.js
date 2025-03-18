@@ -25,17 +25,78 @@ exports.shareFile = async (req, res) => {
 };
 
 // 📌 Function: Retrieve shared files for a batch/module
+// exports.getSharedFiles = async (req, res) => {
+//     try {
+//         // Log the entire params object
+//         console.log("Request params:", req.params);
+
+//         const { module } = req.params; // Extract the module parameter
+
+//         // Log the module parameter for debugging
+//         console.log("Module parameter:", module);
+
+//         // Check if module is undefined or empty and handle it
+//         if (!module) {
+//             return res.status(400).json({ error: "Module parameter is missing." });
+//         }
+
+//         const query = "SELECT file_name, file_data FROM shared_files WHERE module = ? ORDER BY created_at DESC";
+
+//         db.query(query, [module], (err, results) => {
+//             if (err) {
+//                 console.error("Database query error:", err);
+//                 return res.status(500).json({ error: "Database error", details: err.message });
+//             }
+
+//             // Assuming file_data is binary, convert it to base64 for JSON
+//             const sharedFiles = results.map(result => ({
+//                 file_name: result.file_name,
+//                 file_data: result.file_data ? result.file_data.toString('base64') : null // Handle null case
+//             }));
+
+//             res.status(200).json({ sharedFiles });
+//             console.log('result:', sharedFiles);
+//         });
+//     } catch (error) {
+//         console.error("Internal server error:", error);
+//         res.status(500).json({ error: "Internal Server Error", details: error.message });
+//     }
+// };
+
 exports.getSharedFiles = async (req, res) => {
     try {
-        const { module, batch } = req.params;
+        console.log("Request params:", req.params);
 
-        const query = "SELECT id, lecturer_id, module, batch, file_name, note, created_at FROM shared_files WHERE module = ? AND batch = ? ORDER BY created_at DESC";
-        db.query(query, [module, batch], (err, results) => {
-            if (err) return res.status(500).json({ error: "Database error", details: err });
+        const { module } = req.params;
+        console.log("Module parameter:", module);
 
-            res.status(200).json({ sharedFiles: results });
+        if (!module) {
+            return res.status(400).json({ error: "Module parameter is missing." });
+        }
+
+        // Use the parameterized query that filters by module
+        const query = "SELECT file_name, file_data FROM shared_files WHERE module = ?";
+
+        // Pass the module parameter as an array
+        db.query(query, [module], (err, results) => {
+            if (err) {
+                console.error("Database query error:", err);
+                return res.status(500).json({ error: "Database error", details: err.message });
+            }
+
+            console.log("Executing query:", query, "with parameters:", [module]);
+
+            const sharedFiles = results.map(result => ({
+                file_name: result.file_name,
+                file_data: result.file_data ? result.file_data.toString('base64') : null
+            }));
+
+            console.log("Sending response with shared files:", sharedFiles);
+
+            res.status(200).json({ sharedFiles });
         });
     } catch (error) {
+        console.error("Internal server error:", error);
         res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
 };
