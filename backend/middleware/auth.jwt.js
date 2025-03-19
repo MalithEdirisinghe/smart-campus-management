@@ -5,7 +5,7 @@ const User = require("../models/user.model");
 // Verify JWT token
 const verifyToken = (req, res, next) => {
   const token = req.headers["x-access-token"] || req.headers.authorization?.split(' ')[1];
-
+console.log('Token:',token);
   if (!token) {
     return res.status(403).json({
       message: "No authentication token provided. Please log in to access this resource."

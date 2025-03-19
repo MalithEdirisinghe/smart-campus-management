@@ -5,6 +5,7 @@ const groupController = require("../controllers/group.controller");
 const messageController = require("../controllers/message.controller");
 const fileController = require("../controllers/file.controller");
 const upload = require("../middleware/multer.config");
+const communication = require("../controllers/communication.controller");
 
 // Middleware to set headers for all requests in this route
 router.use((req, res, next) => {
@@ -80,9 +81,11 @@ router.post(
 
 router.get(
   "/files/:module",
-  [authJwt.verifyToken],
+  [authJwt.verifyToken, authJwt.isStudent],
   fileController.getSharedFiles
 );
+
+router.get("/download/:filePath", fileController.downloadFile);
 
 // =============================
 // 📌 Direct Messaging (All Users)

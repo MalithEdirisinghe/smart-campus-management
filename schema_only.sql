@@ -200,7 +200,7 @@ CREATE TABLE `direct_messages` (
   KEY `receiver_id` (`receiver_id`),
   CONSTRAINT `direct_messages_ibfk_1` FOREIGN KEY (`sender_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
   CONSTRAINT `direct_messages_ibfk_2` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -534,7 +534,30 @@ CREATE TABLE `shared_files` (
   PRIMARY KEY (`id`),
   KEY `lecturer_id` (`lecturer_id`),
   CONSTRAINT `shared_files_ibfk_1` FOREIGN KEY (`lecturer_id`) REFERENCES `lecturer_users` (`lecturer_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `student_classes`
+--
+
+DROP TABLE IF EXISTS `student_classes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `student_classes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` varchar(50) NOT NULL,
+  `module_id` varchar(20) NOT NULL,
+  `classroom_id` varchar(10) DEFAULT NULL,
+  `registration_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `student_id` (`student_id`),
+  KEY `module_id` (`module_id`),
+  KEY `classroom_id` (`classroom_id`),
+  CONSTRAINT `student_classes_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE,
+  CONSTRAINT `student_classes_ibfk_2` FOREIGN KEY (`module_id`) REFERENCES `modules` (`module_id`) ON DELETE CASCADE,
+  CONSTRAINT `student_classes_ibfk_3` FOREIGN KEY (`classroom_id`) REFERENCES `classrooms` (`classroom_id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -556,6 +579,27 @@ CREATE TABLE `student_courses` (
   KEY `course_id` (`course_id`),
   CONSTRAINT `student_courses_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`),
   CONSTRAINT `student_courses_ibfk_2` FOREIGN KEY (`course_id`) REFERENCES `courses` (`course_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `student_requests`
+--
+
+DROP TABLE IF EXISTS `student_requests`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `student_requests` (
+  `request_id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` varchar(50) NOT NULL,
+  `module_id` varchar(20) NOT NULL,
+  `status` enum('pending','approved','rejected') DEFAULT 'pending',
+  `request_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`request_id`),
+  KEY `student_id` (`student_id`),
+  KEY `module_id` (`module_id`),
+  CONSTRAINT `student_requests_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`student_id`) ON DELETE CASCADE,
+  CONSTRAINT `student_requests_ibfk_2` FOREIGN KEY (`module_id`) REFERENCES `modules` (`module_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -658,4 +702,4 @@ CREATE TABLE `verification_tokens` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-03-18 19:26:53
+-- Dump completed on 2025-03-19  0:46:20
